@@ -7,7 +7,7 @@ import { PALETTES } from './js-core-levels.js';
 import { BASE_PALETTE as P } from './js-systems-themes.js';
 
 const TAU = Math.PI * 2;
-export const MAX_ZOOM = 4;
+export const MAX_ZOOM = 6;
 
 export class BoardRenderer {
   constructor(canvas) {
@@ -126,8 +126,8 @@ export class BoardRenderer {
 
   /** Büyük tahtalarda iki parmakla uzaklaşınca tahtanın tamamı genişliğe sığana kadar küçülür. */
   get minZoom() {
-    if (!this.level?.meta?.scroll) return 1;
-    return Math.min(1, this.W / (this.level.w + 1.2) / this.cs);
+    const base = this.level?.meta?.scroll ? Math.min(1, this.W / (this.level.w + 1.2) / this.cs) : 1;
+    return base * 0.6;
   }
 
   zoomBy(f) { this.zoomAt(this.z * f, this.W / 2, this.H / 2); }
@@ -152,10 +152,12 @@ export class BoardRenderer {
   clamp() {
     const bw = this.cs * this.level.w * this.z, bh = this.cs * this.level.h * this.z;
     const m = this.cs * this.z * 0.6;
+    // Kenarlardan sonra da bir miktar boş alana kaydırılabilir (serbest his)
+    const sx = this.W * 0.45, sy = this.H * 0.45;
     if (bw + m * 2 <= this.W) this.ox = (this.W - bw) / 2;
-    else this.ox = Math.min(m, Math.max(this.W - bw - m, this.ox));
+    else this.ox = Math.min(m + sx, Math.max(this.W - bw - m - sx, this.ox));
     if (bh + m * 2 <= this.H) this.oy = (this.H - bh) / 2;
-    else this.oy = Math.min(m, Math.max(this.H - bh - m, this.oy));
+    else this.oy = Math.min(m + sy, Math.max(this.H - bh - m - sy, this.oy));
   }
 
   get cell() { return this.cs * this.z; }
