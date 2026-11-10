@@ -110,7 +110,7 @@ export class League {
         ],
       }, tok);
     } catch (e) {
-      if (e.status === 409 || /ALREADY_EXISTS|FAILED_PRECONDITION/.test(e.message)) {
+      if (e.status === 409 || e.status === 403 || /ALREADY_EXISTS|FAILED_PRECONDITION|PERMISSION_DENIED/.test(e.message)) {
         // Bu cihazın oyuncusu zaten varsa (ör. kayıt silinip geri geldiyse) adı kontrol et
         const mine = await this.fetchPlayer(uid).catch(() => null);
         if (mine) { Object.assign(this.acc, { name: mine.name, synced: mine.score }); this.app.save.touch(); return mine.name; }
