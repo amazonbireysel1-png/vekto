@@ -388,3 +388,74 @@ svg { display: block; }
 .brand { margin: 0; }
 .brand-logo { display: block; width: clamp(108px, 34vw, 140px); height: auto; border-radius: 22%; box-shadow: 0 10px 28px rgba(20, 30, 80, 0.14); }
 @media (max-height: 640px) { .brand-logo { width: 96px; } }
+
+/* Can bitti penceresi */
+.out-of-lives .lost-hearts { display: flex; justify-content: center; gap: 10px; margin: 4px 0 14px; }
+.out-of-lives .lost-hearts svg { width: 34px; height: 34px; color: #D5D8DE; fill: currentColor; animation: heart-lose 420ms var(--ease-out) both; }
+.out-of-lives .lost-hearts svg:nth-child(2) { animation-delay: 90ms; }
+.out-of-lives .lost-hearts svg:nth-child(3) { animation-delay: 180ms; }
+@keyframes heart-lose { from { color: #FF0000; transform: scale(1.25); } }
+
+/* Puan */
+.chip.pts { color: #7300FF; background: #F1E8FF; }
+.chip.pts svg { width: 14px; height: 14px; margin-right: 3px; vertical-align: -2px; }
+.pt-float { position: absolute; z-index: 5; pointer-events: none; transform: translate(-50%, -50%); font-weight: 800; font-size: 17px; color: #7300FF; text-shadow: 0 1px 0 #fff, 0 0 6px #fff; animation: pt-up 750ms var(--ease-out) forwards; }
+@keyframes pt-up { from { opacity: 1; transform: translate(-50%, -50%); } to { opacity: 0; transform: translate(-50%, -190%); } }
+
+.pts-pill { color: #7300FF; background: #F1E8FF; border: 0; margin-left: 8px; cursor: pointer; font: inherit; font-weight: 700; }
+.pts-pill svg { width: 16px; height: 16px; }
+.home-row { display: grid; grid-template-columns: repeat(3, 1fr); }
+
+/* Lig */
+.my-league { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--r-xl); background: #F1E8FF; margin-bottom: 10px; }
+.ml-rank { min-width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: #7300FF; color: #fff; font-size: 20px; font-weight: 800; padding: 0 6px; }
+.ml-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ml-txt b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ml-txt small { color: var(--ink-2); font-size: 13px; }
+.ml-pts { display: flex; align-items: center; gap: 4px; color: #7300FF; font-weight: 800; font-size: 18px; }
+.ml-pts svg, .pts-pill svg { flex: none; }
+.ml-pts svg { width: 18px; height: 18px; }
+.league-note { color: var(--ink-2); font-size: 13.5px; line-height: 1.45; margin: 6px 4px 14px; }
+.board-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.board-list li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #F5F6F8; }
+.board-list li.state { justify-content: center; color: var(--ink-2); background: none; padding: 28px 8px; text-align: center; line-height: 1.5; }
+.board-list .r { width: 30px; text-align: center; font-weight: 800; color: var(--ink-2); }
+.board-list .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.board-list .p { font-weight: 800; }
+.board-list li.top1 .r { color: #E0A800; } .board-list li.top2 .r { color: #8A93A3; } .board-list li.top3 .r { color: #C26A2B; }
+.board-list li.me { background: #7300FF; color: #fff; }
+.board-list li.me .r { color: #fff; }
+.nick { text-align: center; }
+.nick-badge { width: 64px; height: 64px; margin: 4px auto 12px; display: grid; place-items: center; border-radius: 20px; background: #F1E8FF; color: #7300FF; }
+.nick-badge svg { width: 34px; height: 34px; }
+.nick-input { width: 100%; box-sizing: border-box; height: 52px; border-radius: 14px; border: 2px solid #E3E5EA; padding: 0 16px; font: inherit; font-size: 18px; font-weight: 600; text-align: center; background: #fff; color: var(--ink); outline: none; }
+.nick-input:focus { border-color: #7300FF; }
+.nick-err { min-height: 20px; margin: 8px 0 0; color: #D40000; font-size: 13.5px; }
+.nick .actions { margin-top: 10px; }
+
+/* Lig kademeleri */
+.tone-bronze { --t1: #C9783A; --t2: #F6E3D2; }
+.tone-silver { --t1: #7C8696; --t2: #E8EBF0; }
+.tone-gold { --t1: #D49A00; --t2: #FFF1C2; }
+.tone-platinum { --t1: #0FA3A3; --t2: #D5F5F3; }
+.tone-diamond { --t1: #2F6BFF; --t2: #DCE6FF; }
+.tone-master { --t1: #F505B4; --t2: #FFD9F3; }
+.tier-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--r-xl); background: var(--t2); margin-bottom: 10px; }
+.tier-badge { flex: none; width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50% 50% 46% 46%; background: var(--t1); color: #fff; font-weight: 800; font-size: 22px; box-shadow: inset 0 -5px 0 rgba(0,0,0,.14); }
+.tier-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tier-txt b { font-size: 20px; letter-spacing: -0.02em; color: var(--t1); }
+.tier-txt small { color: var(--ink-2); font-size: 13px; }
+.tier-bar { height: 8px; border-radius: 8px; background: rgba(255,255,255,.75); overflow: hidden; margin-top: 4px; }
+.tier-bar i { display: block; height: 100%; border-radius: 8px; background: var(--t1); transition: width 500ms var(--ease-out); }
+.board-list .n small.tn { display: block; font-size: 11.5px; font-weight: 700; color: var(--t1); margin-top: 1px; }
+.board-list li.me .n small.tn { color: #fff; opacity: .85; }
+
+.home-row { grid-template-columns: repeat(2, 1fr) !important; }
+.league-card { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: var(--r-lg); border: 0; background: var(--t2, #F5F6F8); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.league-card .glyph { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--t1, #7300FF); color: #fff; }
+.league-card .glyph svg { width: 22px; height: 22px; }
+.league-card .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.league-card .txt b { font-size: 16px; }
+.league-card .txt small { font-size: 13px; font-weight: 700; color: var(--t1); }
+.league-card .chev { flex: none; opacity: .5; }
+.league-card .chev svg { width: 18px; height: 18px; }

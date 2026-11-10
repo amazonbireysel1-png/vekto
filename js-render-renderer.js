@@ -94,8 +94,9 @@ export class BoardRenderer {
     this.W = W; this.H = H;
     const pad = 0.6;
     const fitW = W / (this.level.w + pad * 2);
-    // Zor/Ultra zor tahtalar genişliğe göre ölçeklenir; boyları ekrandan uzun olur ve kaydırılır
-    this.cs = this.level.meta?.scroll ? Math.min(fitW, 46) : Math.min(fitW, H / (this.level.h + pad * 2), 64);
+        // Zor/Ultra zor: hücre parmakla rahat dokunulacak boyutta sabit tutulur; tahta ekranın
+    // hem eninden hem boyundan taşar (sağa sola ve aşağı yukarı kaydırılır)
+    this.cs = this.level.meta?.scroll ? Math.max(24, Math.min(40, W / (this.level.w * 0.72))) : Math.min(fitW, H / (this.level.h + pad * 2), 64);
     if (!keepView) this.fit(); else this.clamp();
     this.anim.wake();
   }
@@ -113,7 +114,7 @@ export class BoardRenderer {
 
   /** Ekrandaki (px, py) noktası sabit kalacak şekilde yakınlaştırır. */
   zoomAt(z, px, py) {
-    z = Math.max(1, Math.min(MAX_ZOOM, z));
+    z = Math.max(this.minZoom, Math.min(MAX_ZOOM, z));
     const k = z / this.z;
     this.ox = px - (px - this.ox) * k;
     this.oy = py - (py - this.oy) * k;
@@ -121,6 +122,12 @@ export class BoardRenderer {
     this.clamp();
     this.anim.wake();
     this.onViewChange?.(this.z);
+  }
+
+  /** Büyük tahtalarda iki parmakla uzaklaşınca tahtanın tamamı genişliğe sığana kadar küçülür. */
+  get minZoom() {
+    if (!this.level?.meta?.scroll) return 1;
+    return Math.min(1, this.W / (this.level.w + 1.2) / this.cs);
   }
 
   zoomBy(f) { this.zoomAt(this.z * f, this.W / 2, this.H / 2); }

@@ -11,7 +11,10 @@ export function defaultSave() {
     createdAt: Date.now(),
     level: 1,                 // oynanacak sıradaki bölüm (açılmış en yüksek)
     levels: {},               // n → { s: yıldız, m: en az hata, t: en iyi süre(ms) }
-    hints: 3,                 // ücretsiz ipucu hakkı (önce bunlar harcanır)
+    hints: 3,
+    points: 0,                // çıkarılan her ok 1 puan (lig puanı)
+    pointsTotal: 0,
+    league: { uid: '', name: '', idToken: '', refreshToken: '', exp: 0, synced: -1, asked: 0 },                 // ücretsiz ipucu hakkı (önce bunlar harcanır)
     xp: 0,
     stats: {
       cleared: 0, stars: 0, perfect: 0, hintsUsed: 0, mistakes: 0, playMs: 0,

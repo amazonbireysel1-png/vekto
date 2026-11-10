@@ -26,7 +26,7 @@ export function settingsScreen(app) {
             ${row('haptics', icon.vibrate, 'Titreşim')}
             ${row('reducedMotion', icon.motion, 'Azaltılmış hareket', 'Animasyonları kısaltır')}
           </div>
-          <p class="about">Vekto ${APP.version}<br>İnternet olmadan oynanabilir. İlerleme yalnızca bu cihazda saklanır.<br>Yazı tipi: Inter (SIL Open Font License).</p>
+          <p class="about">Vekto ${APP.version}<br>İnternet olmadan oynanabilir. İlerleme bu cihazda saklanır; lig için yalnızca takma adın ve puanın sunucuya gönderilir.<br>Yazı tipi: Inter (SIL Open Font License).</p>
         </div>
       </section>`);
     onTap(node.querySelector('[data-act="back"]'), () => app.router.back(), { app, sound: 'back' });

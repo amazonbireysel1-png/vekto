@@ -2,6 +2,7 @@
 
 import { el, onTap, esc, starsHtml } from './js-ui-dom.js';
 import { icon } from './js-ui-icons.js';
+import { addPoints } from './js-systems-league.js';
 import { Session, LIVES } from './js-game-session.js';
 import { BoardRenderer } from './js-render-renderer.js';
 import { getLevel, getDaily, MAX_LEVEL } from './js-core-levels.js';
@@ -71,7 +72,7 @@ export function gameScreen(app) {
     const updateHud = () => {
       const st = $('[data-status]');
       const hearts = Array.from({ length: LIVES }, (_, k) => `<i class="heart ${k < session.lives ? 'on' : ''}">${icon.heart}</i>`).join('');
-      st.innerHTML = `<span class="lives" aria-label="${session.lives} can">${hearts}</span><span class="chip num">${session.state.aliveCount} ok kaldı</span>`;
+      st.innerHTML = `<span class="lives" aria-label="${session.lives} can">${hearts}</span><span class="chip num">${session.state.aliveCount} ok kaldı</span><span class="chip num pts" data-pts>${icon.bolt || ''}${app.save.data.points} puan</span>`;
       const u = $('[data-undo]');
       u.textContent = session.undosLeft;
       $('[data-act="undo"]').disabled = !session.canUndo();
@@ -157,6 +158,9 @@ export function gameScreen(app) {
       if (r.type === 'move') {
         clearHint();
         renderer.exit(r.unit);
+        addPoints(app.save.data, r.unit.length);
+        app.league.schedulePush();
+        showPoint(r.unit);
         app.audio.play('move');
         app.platform.haptic('light');
       } else if (r.type === 'blocked') {
@@ -227,20 +231,50 @@ export function gameScreen(app) {
       updateHud();
     }
 
-    /** Canlar bitti: kısa bir uyarı, sonra seviye en baştan ve 3 canla başlar. */
+    /** Canlar bitti: seviye kendiliğinden başlamaz; oyuncu "Tekrar dene" ya da "Ana sayfa" seçer. */
     function onOutOfLives() {
       ended = true;
+      save.resume = null;
+      app.save.touch();
       app.audio.play('fail');
       app.platform.haptic('warning');
-      app.toasts.show(`${icon.heart}Canın bitti, seviye baştan başlıyor.`, 1600);
       wrap.classList.add('shake');
-      setTimeout(() => { wrap.classList.remove('shake'); ended = false; start(true); }, 1000);
+      setTimeout(() => wrap.classList.remove('shake'), 500);
+      setTimeout(() => {
+        const left = session.state.aliveCount;
+        const content = el(`<div class="out-of-lives">
+          <div class="lost-hearts">${icon.heart}${icon.heart}${icon.heart}</div>
+          <h2>Canın bitti</h2>
+          <p class="lead">${left} ok kaldı. Seviye baştan başlayacak.</p>
+          <div class="actions">
+            <button class="btn primary big" data-a="retry">${icon.restart}Tekrar dene</button>
+            <button class="btn soft" data-a="menu">${icon.grid}Ana sayfa</button>
+          </div></div>`);
+        const layer = app.layers.show(content, { dismissable: false });
+        const close = () => app.layers.close(layer);
+        onTap(content.querySelector('[data-a="retry"]'), () => { close(); ended = false; start(true); }, { app });
+        onTap(content.querySelector('[data-a="menu"]'), () => { close(); app.router.home(); }, { app });
+      }, 650);
+    }
+
+    /** Çıkan okun başında kısa bir "+1" yükselir. */
+    function showPoint(unit) {
+      if (save.settings.reducedMotion) return;
+      const i = unit[0];
+      const [x, y] = renderer.toScreen(level.px[i], level.py[i]);
+      const f = document.createElement('div');
+      f.className = 'pt-float num';
+      f.textContent = `+${unit.length}`;
+      f.style.left = `${x}px`; f.style.top = `${y}px`;
+      wrap.appendChild(f);
+      setTimeout(() => f.remove(), 750);
     }
 
     function doUndo() {
       const r = session.undo();
       if (!r) return;
       app.save.data.stats.undos++;
+      addPoints(app.save.data, -r.restored.length);
       renderer.setState(session.state);
       renderer.restore(r.restored);
       app.audio.play('undo');

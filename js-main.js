@@ -15,6 +15,8 @@ import { levelsScreen } from './js-ui-screens-levels.js';
 import { dailyScreen } from './js-ui-screens-daily.js';
 import { progressScreen } from './js-ui-screens-progress.js';
 import { settingsScreen } from './js-ui-screens-settings.js';
+import { leagueScreen, askNickname } from './js-ui-screens-league.js';
+import { League, leagueReady } from './js-systems-league.js';
 
 class App {
   constructor() {
@@ -30,7 +32,9 @@ class App {
       daily: dailyScreen(this),
       progress: progressScreen(this),
       settings: settingsScreen(this),
+      league: leagueScreen(this),
     });
+    this.league = new League(this);
     this.loginChecked = false;
     this.exitArmed = 0;
   }
@@ -38,11 +42,12 @@ class App {
   start() {
     this.applySettings();
     this.platform.onBack(() => this.handleBack());
-    this.platform.onPause(() => { this.save.flush(); this.audio.stopMusic(); this.audio.suspend(); });
+    this.platform.onPause(() => { this.league.push().catch(() => {}); this.save.flush(); this.audio.stopMusic(); this.audio.suspend(); });
     this.platform.onResume(() => {
       this.audio.resume();
       if (this.save.data.settings.music) this.audio.setMusic(true);
       // Gün değiştiyse ana menü yeni günlük içeriği göstersin
+      this.league.schedulePush(500);
       if (this.router.current?.name === 'home') this.router.go('home', {}, { replace: true, back: true });
     });
     document.addEventListener('pointerdown', () => this.audio.unlock(), { once: true, capture: true });
@@ -95,8 +100,17 @@ class App {
     if (next < MAX_LEVEL) this.idle(() => getLevel(next + 1));
   }
 
+  /** İlk girişte takma ad sorulur ve oyuncu doğrudan lige katılır. */
+  maybeAskNickname() {
+    if (!leagueReady() || this.league.joined || this.nickAsked) return false;
+    this.nickAsked = true;
+    setTimeout(() => askNickname(this), 350);
+    return true;
+  }
+
   maybeLoginReward() {
-    if (this.loginChecked) return;
+    if (this.maybeAskNickname()) return;
+    if (this.nickOpen || this.loginChecked) return;
     this.loginChecked = true;
     const s = this.save.data;
     const offer = checkLoginReward(s);

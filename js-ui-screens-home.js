@@ -2,6 +2,7 @@ import { el, onTap, esc } from './js-ui-dom.js';
 import { icon } from './js-ui-icons.js';
 import { levelLabel, MAX_LEVEL } from './js-core-levels.js';
 import { trustedToday, prettyDay } from './js-systems-calendar.js';
+import { tierOf } from './js-systems-league.js';
 
 export function homeScreen(app) {
   return () => {
@@ -15,6 +16,7 @@ export function homeScreen(app) {
       <section class="screen home" aria-label="Ana sayfa">
         <header class="home-head">
           <div class="pill num hint-pill" data-hints title="İpucu hakkı">${icon.hint}<span>${s.hints}</span></div>
+          <button class="pill num pts-pill" data-act="league2" title="Puan">${icon.bolt}<span data-pts>${s.points.toLocaleString('tr-TR')}</span></button>
           <div class="spacer"></div>
           <button class="icon-btn" data-act="settings" aria-label="Ayarlar">${icon.settings}</button>
         </header>
@@ -33,6 +35,11 @@ export function homeScreen(app) {
             <span class="txt"><b>Günlük bulmaca</b><small>${dailyDone ? `${prettyDay(today)} tamamlandı, ${s.daily.streak} günlük seri` : `${prettyDay(today)} için yeni bulmaca hazır`}</small></span>
             <span class="chev">${icon.chevron}</span>
           </button>
+          <button class="league-card tone-${tierOf(s.points).tone}" data-act="league">
+            <span class="glyph">${icon.trophy}</span>
+            <span class="txt"><b>Lig</b><small data-tier>${tierOf(s.points).name}</small></span>
+            <span class="chev">${icon.chevron}</span>
+          </button>
           <div class="home-row">
             <button class="btn" data-act="levels">${icon.grid}<span>Seviyeler</span></button>
             <button class="btn" data-act="progress">${icon.chart}<span>İlerleme</span></button>
@@ -44,10 +51,12 @@ export function homeScreen(app) {
     onTap($('play'), () => app.startLevel(n), { app });
     onTap($('daily'), () => app.router.go('daily'), { app });
     onTap($('levels'), () => app.router.go('levels'), { app });
+    onTap($('league'), () => app.router.go('league'), { app });
+    onTap($('league2'), () => app.router.go('league'), { app });
     onTap($('progress'), () => app.router.go('progress'), { app });
     onTap($('settings'), () => app.router.go('settings'), { app });
 
-    const off = app.save.onChange((d) => { node.querySelector('[data-hints] span').textContent = d.hints; });
+    const off = app.save.onChange((d) => { node.querySelector('[data-hints] span').textContent = d.hints; node.querySelector('[data-pts]').textContent = d.points.toLocaleString('tr-TR'); node.querySelector('[data-tier]').textContent = tierOf(d.points).name; node.querySelector('.league-card').className = `league-card tone-${tierOf(d.points).tone}`; });
     return { node, destroy: off, mounted: () => app.maybeLoginReward(), onBack: () => { app.confirmExit(); return true; } };
   };
 }

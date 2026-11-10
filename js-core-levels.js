@@ -80,10 +80,11 @@ export function paramsFor(n) {
     w = 10 + Math.round(t * 4) + (pos - 2); h = Math.min(22, Math.round(w * shapeAspect(shape)));
     density = 0.86; blockBias = 0.6 + t * 0.25; maxLen = 6 + Math.round(t * 6); straight = 0.5; hardness = 0;
   } else if (kind === 'hard') {
-    w = 13 + Math.round(t * 3); h = Math.round(w * (2.35 + t * 0.3));
+    // Ekrana ne enine ne boyuna sığar: sağa sola ve aşağı yukarı kaydırılır
+    w = 18 + Math.round(t * 4); h = Math.round(w * (1.75 + t * 0.2));
     density = 0.93; blockBias = 0.85 + t * 0.1; maxLen = 10 + Math.round(t * 6); straight = 0.4; hardness = 0.7;
   } else {
-    w = 15 + Math.round(t * 3); h = Math.min(52, Math.round(w * (2.7 + t * 0.3)));
+    w = 22 + Math.round(t * 5); h = Math.min(58, Math.round(w * (1.9 + t * 0.2)));
     density = 0.96; blockBias = 0.95; maxLen = 14 + Math.round(t * 6); straight = 0.32; hardness = 1;
   }
   const r2 = createRng(hashString(`params-${n}`));
