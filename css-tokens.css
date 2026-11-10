@@ -1,0 +1,72 @@
+/* Tasarım sistemi: renk, tipografi, boşluk, gölge, hareket token'ları */
+@font-face { font-family: 'Inter'; src: url('assets-fonts-Inter-Regular.woff') format('woff'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('assets-fonts-Inter-Medium.woff') format('woff'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('assets-fonts-Inter-SemiBold.woff') format('woff'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('assets-fonts-Inter-Bold.woff') format('woff'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Inter Display'; src: url('assets-fonts-InterDisplay-Bold.woff') format('woff'); font-weight: 700; font-display: swap; }
+
+:root {
+  /* Yüzeyler */
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #F1F2F4;
+  --line: #E6E6E2;
+  --line-strong: #D8D8D3;
+
+  /* Metin */
+  --ink: #2B2E33;
+  --ink-2: #5E6168;
+  --ink-3: #8E9096;
+  --ink-inv: #F6F5F2;
+
+  /* Parça */
+  --piece: #31343A;
+  --piece-edge: #24262B;
+
+  /* Pastel vurgular */
+  --mint: #BFE3D5;
+  --mint-ink: #2F6B57;
+  --blue: #C6D9F1;
+  --blue-ink: #2F5486;
+  --lavender: #D9D0F2;
+  --lavender-ink: #5A4A8C;
+  --sand: #F0DCC8;
+  --rose: #E7A79A;
+
+  /* Tipografi */
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Inter Display', 'Inter', system-ui, sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 21px;
+  --fs-2xl: 28px;
+
+  /* Boşluk (4'lük ızgara) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px; --s10: 40px;
+
+  /* Köşe yarıçapları: hiyerarşiye göre farklı */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* Gölgeler: çok hafif, sıcak gri */
+  --sh-1: 0 1px 2px rgba(40, 38, 34, 0.05), 0 1px 1px rgba(40, 38, 34, 0.03);
+  --sh-2: 0 6px 20px rgba(40, 38, 34, 0.06), 0 1px 3px rgba(40, 38, 34, 0.05);
+  --sh-3: 0 18px 48px rgba(40, 38, 34, 0.12), 0 2px 6px rgba(40, 38, 34, 0.06);
+
+  /* Hareket */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 120ms;
+  --t-mid: 220ms;
+  --t-slow: 380ms;
+
+  /* Güvenli alanlar (çentik / gezinme çubuğu) */
+  /* Android'de Capacitor SystemBars eski WebView'larda --safe-area-inset-* değişkenlerini enjekte eder */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+}
