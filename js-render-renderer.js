@@ -93,7 +93,9 @@ export class BoardRenderer {
     this.canvas.style.width = W + 'px'; this.canvas.style.height = H + 'px';
     this.W = W; this.H = H;
     const pad = 0.6;
-    this.cs = Math.min(W / (this.level.w + pad * 2), H / (this.level.h + pad * 2), 64);
+    const fitW = W / (this.level.w + pad * 2);
+    // Zor/Ultra zor tahtalar genişliğe göre ölçeklenir; boyları ekrandan uzun olur ve kaydırılır
+    this.cs = this.level.meta?.scroll ? Math.min(fitW, 46) : Math.min(fitW, H / (this.level.h + pad * 2), 64);
     if (!keepView) this.fit(); else this.clamp();
     this.anim.wake();
   }
@@ -101,7 +103,10 @@ export class BoardRenderer {
   fit() {
     this.z = 1;
     this.ox = (this.W - this.cs * this.level.w) / 2;
-    this.oy = (this.H - this.cs * this.level.h) / 2;
+    const bh = this.cs * this.level.h;
+    // Uzun tahta: en üstten başlar
+    this.oy = bh > this.H ? this.cs * 0.6 : (this.H - bh) / 2;
+    this.clamp();
     this.anim.wake();
     this.onViewChange?.(this.z);
   }
@@ -121,6 +126,21 @@ export class BoardRenderer {
   zoomBy(f) { this.zoomAt(this.z * f, this.W / 2, this.H / 2); }
 
   panBy(dx, dy) { this.ox += dx; this.oy += dy; this.clamp(); this.anim.wake(); }
+
+  /** Tahta ekrandan büyükse (uzun tahta ya da yakınlaştırma) sürükleyerek kaydırılabilir. */
+  canPan() {
+    if (!this.level) return false;
+    const m = this.cs * this.z * 0.6;
+    return this.cs * this.level.w * this.z + m * 2 > this.W + 1 || this.cs * this.level.h * this.z + m * 2 > this.H + 1;
+  }
+
+  /** Bir hücreyi ekranın ortasına getirir (ipucu gösterilirken). */
+  centerOn(x, y) {
+    this.ox = this.W / 2 - (x + 0.5) * this.cell;
+    this.oy = this.H / 2 - (y + 0.5) * this.cell;
+    this.clamp();
+    this.anim.wake();
+  }
 
   clamp() {
     const bw = this.cs * this.level.w * this.z, bh = this.cs * this.level.h * this.z;

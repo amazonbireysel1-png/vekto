@@ -39,7 +39,7 @@ export function gameScreen(app) {
       <section class="screen game" aria-label="Oyun">
         <header class="topbar">
           <button class="icon-btn" data-act="back" aria-label="Ana sayfa">${icon.home}</button>
-          <div class="title">${esc(title)}${tag}<small>${esc(level.meta.shapeName)}${level.meta.boss ? ', usta seviye' : ''}</small></div>
+          <div class="title">${esc(title)}${tag}<small>${esc(level.meta.shapeName)}</small></div>
           <div style="width:44px"></div>
         </header>
         <div class="status-row" data-status></div>
@@ -129,7 +129,7 @@ export function gameScreen(app) {
         if (tap.idx >= 0) renderer.press(tap.idx, false);
         tap.moved = true; tap.idx = -1;
       }
-      if (tap?.moved && renderer.z > 1.01) renderer.panBy(dx, dy);
+      if (tap?.moved && renderer.canPan()) renderer.panBy(dx, dy);
     });
     const up = (e, cancel) => {
       pts.delete(e.pointerId);
@@ -144,7 +144,9 @@ export function gameScreen(app) {
     wrap.addEventListener('wheel', (e) => {
       e.preventDefault();
       const [x, y] = local(e);
-      renderer.zoomAt(renderer.z * Math.exp(-e.deltaY * 0.0015), x, y);
+      // Fare tekerleği: uzun tahtada kaydırır; Ctrl ile yakınlaştırır
+      if (!e.ctrlKey && renderer.canPan()) renderer.panBy(-e.deltaX, -e.deltaY);
+      else renderer.zoomAt(renderer.z * Math.exp(-e.deltaY * 0.0015), x, y);
     }, { passive: false });
 
     let lostHeart = false;
@@ -196,7 +198,7 @@ export function gameScreen(app) {
       for (const t of sum.themes) chips.push(`<span class="reward">${icon.palette}${esc(t.name)} teması</span>`);
       chips.forEach((c, k) => { chips[k] = c.replace('class="reward', `style="animation-delay:${380 + k * 70}ms" class="reward`); });
       const last = !isDaily && level.meta.n >= MAX_LEVEL;
-      const headline = isDaily ? 'Günün bulmacası çözüldü' : last ? 'Tüm seviyeler bitti' : level.meta.boss ? 'Usta seviye geçildi' : 'Tamamlandı';
+      const headline = isDaily ? 'Günün bulmacası çözüldü' : last ? 'Tüm seviyeler bitti' : level.meta.boss ? 'Ultra zor geçildi' : 'Tamamlandı';
       const sub = isDaily
         ? (sum.first ? `${sum.streak} günlük seri` : 'Bugünün ödülü zaten alındı')
         : session.mistakes === 0 ? 'Hatasız' : `${session.mistakes} takılma`;
@@ -262,8 +264,8 @@ export function gameScreen(app) {
       const msg = h.stage === 1
         ? 'Parlayan ok şu an çıkabilir.'
         : h.next ? 'Mavi oku çıkar; ardından mor okun yolu açılır.' : 'Parlayan ok çıkınca tahta rahatlar.';
-      // İpucu edilen ok ekranda görünmüyorsa görünümü sığdır
-      if (renderer.z > 1.01) renderer.fit();
+      // İpucu edilen ok ekranın ortasına getirilir (uzun tahtalarda ve yakınlaştırınca)
+      if (renderer.canPan()) renderer.centerOn(level.px[h.unit[0]], level.py[h.unit[0]]);
       hintNote = el(`<div class="hint-note">${msg}</div>`);
       wrap.appendChild(hintNote);
       updateHud();

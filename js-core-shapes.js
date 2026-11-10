@@ -87,9 +87,26 @@ export const SHAPES = {
     },
   },
   bolt: { label: 'Şimşek', aspect: 1.3, f: (u, v) => inPoly(BOLT, u, v) },
+  // --- Uzun (ekrana sığmayan) tahtalar için şekiller: y = v·a gerçek oranla çalışır ---
+  capsule: { label: 'Kapsül', aspect: 2.2, tall: true, f: (u, v, a) => { const y = Math.abs(v * a), e = a - 0.98; return y <= e ? Math.abs(u) <= 0.98 : u * u + sq(y - e) <= 0.97; } },
+  snowman: {
+    label: 'Kardan adam', aspect: 2.3, tall: true,
+    f: (u, v, a) => { const y = v * a; return [[-a + 0.62, 0.6], [-a + 1.9, 0.82], [a - 1.0, 0.98]].some(([c, r]) => u * u + sq(y - c) <= r * r); },
+  },
+  tower: {
+    label: 'Kule', aspect: 2.3, tall: true,
+    f: (u, v, a) => { const y = v * a + a; if (y < 0.45) return Math.abs(u) <= 0.95 && Math.floor((u + 1) * 3.5) % 2 === 0; return Math.abs(u) <= (y < 0.9 ? 0.95 : 0.78); },
+  },
+  wave: { label: 'Dalga', aspect: 2.3, tall: true, f: (u, v, a) => Math.abs(u - 0.38 * Math.sin(v * a * 1.6)) <= 0.62 },
+  hourglass: { label: 'Kum saati', aspect: 2.2, tall: true, f: (u, v, a) => Math.abs(u) <= 0.34 + 0.66 * Math.abs(v) },
+  chain: {
+    label: 'Zincir', aspect: 2.4, tall: true,
+    f: (u, v, a) => { const y = v * a + a, k = y - 1.05 * Math.floor(y / 1.05) - 0.525; return Math.abs(u) / 0.98 + Math.abs(k) / 0.9 <= 1 || Math.abs(u) <= 0.28; },
+  },
 };
 
-export const SHAPE_NAMES = Object.keys(SHAPES);
+export const SHAPE_NAMES = Object.keys(SHAPES).filter((k) => !SHAPES[k].tall);
+export const TALL_SHAPES = Object.keys(SHAPES).filter((k) => SHAPES[k].tall).concat(['tree', 'shield', 'square']);
 
 /** Şekil maskesi; çok küçük ızgaralarda boş çıkmasın diye en az %20 doluluk garanti edilir. */
 export function shapeMask(name, w, h) {
@@ -98,7 +115,7 @@ export function shapeMask(name, w, h) {
   let count = 0;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const u = ((x + 0.5) / w) * 2 - 1, v = ((y + 0.5) / h) * 2 - 1;
-    if (sh.f(u, v)) { m[y * w + x] = 1; count++; }
+    if (sh.f(u, v, h / w)) { m[y * w + x] = 1; count++; }
   }
   if (count < w * h * 0.2) m.fill(1);
   return m;
