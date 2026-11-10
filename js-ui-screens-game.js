@@ -44,11 +44,6 @@ export function gameScreen(app) {
         </header>
         <div class="status-row" data-status></div>
         <div class="board-wrap" data-board><canvas aria-label="Oyun tahtası"></canvas>
-          <div class="zoom" aria-label="Yakınlaştırma">
-            <button class="zbtn" data-z="in" aria-label="Yakınlaştır">${icon.plus}</button>
-            <button class="zbtn" data-z="out" aria-label="Uzaklaştır">${icon.minus}</button>
-            <button class="zbtn" data-z="fit" aria-label="Tahtayı sığdır">${icon.fit}</button>
-          </div>
         </div>
         <nav class="controls">
           <button class="ctrl" data-act="undo" aria-label="Geri al">${icon.undo}<span>Geri al</span><em class="badge num" data-undo></em></button>
@@ -100,7 +95,7 @@ export function gameScreen(app) {
     let tap = null, pinch = null;
     const local = (e) => { const r = wrap.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
     wrap.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.zoom, .coach')) return;
+      if (e.target.closest('.coach')) return;
       app.audio.unlock();
       try { wrap.setPointerCapture(e.pointerId); } catch { /* sentetik olay */ }
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -151,11 +146,6 @@ export function gameScreen(app) {
       const [x, y] = local(e);
       renderer.zoomAt(renderer.z * Math.exp(-e.deltaY * 0.0015), x, y);
     }, { passive: false });
-    node.querySelectorAll('[data-z]').forEach((b) => onTap(b, () => {
-      const k = b.dataset.z;
-      if (k === 'in') renderer.zoomBy(1.5); else if (k === 'out') renderer.zoomBy(1 / 1.5); else renderer.fit();
-    }, { app }));
-    renderer.onViewChange = (z) => { node.querySelector('[data-z="fit"]').classList.toggle('on', z > 1.01); };
 
     let lostHeart = false;
     function act(i) {
