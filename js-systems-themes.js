@@ -19,6 +19,7 @@ export const BASE_PALETTE = {
   hint: '#3E86E0',
   hintNext: '#8E6FE0',
   blocked: '#E25B4B',
+  queued: '#101014',
   particles: ['#F2706B', '#F2C14E', '#4FC27A', '#3E9BEA', '#9C7BEB'],
 };
 

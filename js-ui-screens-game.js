@@ -161,6 +161,13 @@ export function gameScreen(app) {
         addPoints(app.save.data, r.unit.length);
         app.league.schedulePush();
         showPoint(r.unit);
+        // Yolu açılan siyah oklar kendiliğinden, sırayla çıkar
+        (r.auto || []).forEach((a, k) => {
+          const delay = 220 + k * 170;
+          renderer.exit(a.unit, delay);
+          addPoints(app.save.data, a.unit.length);
+          setTimeout(() => { showPoint(a.unit); app.audio.play('move'); }, delay);
+        });
         app.audio.play('move');
         app.platform.haptic('light');
       } else if (r.type === 'blocked') {
@@ -172,7 +179,7 @@ export function gameScreen(app) {
       updateHud();
       if (lostHeart) { const h = node.querySelectorAll('.heart')[session.lives]; h?.classList.add('lost'); lostHeart = false; }
       persist();
-      if (r.win) onWin();
+      if (r.win) { const w = (r.auto || []).length; if (w) setTimeout(onWin, 200 + w * 170); else onWin(); }
       else if (r.outOfLives) onOutOfLives();
     }
 
@@ -277,6 +284,7 @@ export function gameScreen(app) {
       addPoints(app.save.data, -r.restored.length);
       renderer.setState(session.state);
       renderer.restore(r.restored);
+      renderer.syncQueued(session.queued);
       app.audio.play('undo');
       clearHint();
       updateHud();

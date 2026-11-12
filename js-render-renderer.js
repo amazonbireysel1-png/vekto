@@ -35,7 +35,7 @@ export class BoardRenderer {
       s: new Float32Array(n),            // yol üzerindeki ilerleme (hücre)
       a: new Float32Array(n).fill(1),    // saydamlık
       press: new Float32Array(n), flash: new Float32Array(n),
-      flying: new Uint8Array(n),
+      flying: new Uint8Array(n), queued: new Uint8Array(n),
     };
     // Her ok için uzatılmış yol: gövde + başın yönünde tahtanın dışına kadar
     this.paths = [];
@@ -205,14 +205,14 @@ export class BoardRenderer {
   }
 
   /** Başarılı hamle: ok kendi yolunu izleyerek tahtadan kayar. */
-  exit(unit) {
+  exit(unit, delay = 0) {
     for (const i of unit) {
       const path = this.paths[i];
       const dist = path.toEdge + path.len + 0.5;
       this.v.flying[i] = 1; this.v.press[i] = 0;
       const dur = Math.min(900, 220 + dist * 26);
       let sparked = false;
-      this.anim.add({ key: `p${i}`, dur, ease: (t) => 0.4 * t + 0.6 * t * t,
+      this.anim.add({ key: `p${i}`, dur, delay, ease: (t) => 0.4 * t + 0.6 * t * t,
         update: (t) => {
           const s = t * dist;
           this.v.s[i] = s;
@@ -225,7 +225,7 @@ export class BoardRenderer {
             this.burst(sx, sy, 5, d, 0.6, this.colors[i]);
           }
         },
-        done: () => { this.v.flying[i] = 0; this.v.a[i] = 0; } });
+        done: () => { this.v.flying[i] = 0; this.v.a[i] = 0; this.v.queued[i] = 0; } });
     }
     this.hint = null;
   }
@@ -241,11 +241,18 @@ export class BoardRenderer {
         this.v.s[i] = ms < out ? ease.outCubic(ms / out) * reach : reach * (1 - ease.outBack((ms - out) / 300));
       },
       done: () => { this.v.s[i] = 0; } });
+    this.v.queued[i] = 1; this.anim.wake();
     this.flash(i);
     if (p && p.blocker >= 0) setTimeout(() => this.flash(p.blocker, 0.6), out * 0.8);
   }
 
   refuse(i) { this.flash(i); }
+
+  /** Sırada bekleyen (siyah) okları oturumla eşitler. */
+  syncQueued(set) {
+    for (let i = 0; i < this.level.n; i++) this.v.queued[i] = set.has(i) ? 1 : 0;
+    this.anim.wake();
+  }
 
   flash(i, amt = 1) {
     this.anim.add({ key: `flash${i}`, dur: 460, ease: ease.linear, update: (t) => { this.v.flash[i] = Math.sin(t * Math.PI) * amt; } });
@@ -325,8 +332,8 @@ export class BoardRenderer {
         const isNext = !this.hint.unit.includes(i);
         this.drawSnake(g, i, lw * 3.4, isNext ? P.hintNext : P.hint, (isNext ? 0.25 : 0.32) + pulse * 0.25);
       }
-      if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, P.blocked, v.flash[i] * 0.4);
-      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), this.colors[i], v.a[i]);
+      if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, P.queued, v.flash[i] * 0.3);
+      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), v.queued[i] ? P.queued : this.colors[i], v.a[i]);
     }
 
     if (this.particles.length) {
