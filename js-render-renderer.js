@@ -134,11 +134,9 @@ export class BoardRenderer {
 
   panBy(dx, dy) { this.ox += dx; this.oy += dy; this.clamp(); this.anim.wake(); }
 
-  /** Tahta ekrandan büyükse (uzun tahta ya da yakınlaştırma) sürükleyerek kaydırılabilir. */
+  /** Her seviyede ve her yakınlıkta sürükleyerek kaydırılabilir. */
   canPan() {
-    if (!this.level) return false;
-    const m = this.cs * this.z * 0.6;
-    return this.cs * this.level.w * this.z + m * 2 > this.W + 1 || this.cs * this.level.h * this.z + m * 2 > this.H + 1;
+    return !!this.level; // her yakınlıkta, her yöne serbest
   }
 
   /** Bir hücreyi ekranın ortasına getirir (ipucu gösterilirken). */
@@ -154,9 +152,10 @@ export class BoardRenderer {
     const m = this.cs * this.z * 0.6;
     // Kenarlardan sonra da bir miktar boş alana kaydırılabilir (serbest his)
     const sx = this.W * 0.45, sy = this.H * 0.45;
-    if (bw + m * 2 <= this.W) this.ox = (this.W - bw) / 2;
+    // Tahta ekrana sığsa bile (her yakınlıkta) ortadan her yöne kaydırılabilir
+    if (bw + m * 2 <= this.W) { const c = (this.W - bw) / 2; this.ox = Math.min(c + sx, Math.max(c - sx, this.ox)); }
     else this.ox = Math.min(m + sx, Math.max(this.W - bw - m - sx, this.ox));
-    if (bh + m * 2 <= this.H) this.oy = (this.H - bh) / 2;
+    if (bh + m * 2 <= this.H) { const c = (this.H - bh) / 2; this.oy = Math.min(c + sy, Math.max(c - sy, this.oy)); }
     else this.oy = Math.min(m + sy, Math.max(this.H - bh - m - sy, this.oy));
   }
 
