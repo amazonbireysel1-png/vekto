@@ -98,6 +98,7 @@ export function gameScreen(app) {
     wrap.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.coach')) return;
       app.audio.unlock();
+      renderer.clearAim(); // başka bir yere dokunulunca yön çizgisi kalkar
       try { wrap.setPointerCapture(e.pointerId); } catch { /* sentetik olay */ }
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pts.size === 1) {
@@ -133,7 +134,7 @@ export function gameScreen(app) {
       }
       if (tap && tap.id === e.pointerId && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 10) {
         if (tap.idx >= 0) renderer.press(tap.idx, false);
-        clearTimeout(tap.timer); renderer.clearAim();
+        clearTimeout(tap.timer); if (!tap.long) renderer.clearAim();
         tap.moved = true; tap.idx = -1;
       }
       if (tap?.moved && renderer.canPan()) renderer.panBy(dx, dy);
@@ -143,13 +144,16 @@ export function gameScreen(app) {
       if (pts.size < 2) pinch = null;
       if (!tap || tap.id !== e.pointerId) return;
       const t = tap; tap = null;
-      clearTimeout(t.timer); renderer.clearAim();
+      clearTimeout(t.timer); // uzun basışta yön çizgisi parmak çekilince de kalır
       if (t.idx >= 0) renderer.press(t.idx, false);
       if (!cancel && !t.moved && !t.long && t.idx >= 0) act(t.idx);
     };
     wrap.addEventListener('contextmenu', (e) => e.preventDefault());
     wrap.addEventListener('pointerup', (e) => up(e, false));
     wrap.addEventListener('pointercancel', (e) => up(e, true));
+    // Parmak ekrandan beklenmedik şekilde çıkarsa (WebView) takılı kalmasın
+    wrap.addEventListener('lostpointercapture', (e) => up(e, true));
+    window.addEventListener('blur', () => { pts.clear(); pinch = null; if (tap) { clearTimeout(tap.timer); renderer.clearAim(); if (tap.idx >= 0) renderer.press(tap.idx, false); tap = null; } });
     wrap.addEventListener('wheel', (e) => {
       e.preventDefault();
       const [x, y] = local(e);

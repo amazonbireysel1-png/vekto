@@ -79,10 +79,10 @@ export class Audio {
     switch (name) {
       case 'select': break; // dokunma sesi yok
       case 'move': {
-        // Ok sesi: yay kirişinin "tınn" diye bırakılması + okun havayı yararak uzaklaşması
-        this.tone({ f: 150, dur: 0.28, gain: 0.16, type: 'sawtooth', slide: 0.55, filter: 700, attack: 0.002 });
-        this.tone({ f: 300, dur: 0.18, gain: 0.05, type: 'triangle', slide: 0.6, attack: 0.002 });
-        this.noise({ at: 0.03, dur: 0.32, gain: 0.11, from: 4200, to: 700 });
+        // Ok sesi: temiz, tiz bir "fiyuv" (havayı yaran ok) — alçak tını yok
+        this.noise({ dur: 0.2, gain: 0.07, from: 2200, to: 6500 });
+        this.tone({ f: 2200, dur: 0.14, gain: 0.025, type: 'sine', slide: 0.45, attack: 0.004 });
+        this.tone({ f: 3300, dur: 0.1, gain: 0.012, type: 'sine', slide: 0.5, at: 0.015, attack: 0.004 });
         break;
       }
       case 'blocked':

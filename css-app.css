@@ -121,7 +121,7 @@ svg { display: block; }
 .chip svg { width: 15px; height: 15px; }
 .chip.warn { background: #F6E3DE; color: #8A4436; }
 .chip.ok { background: var(--mint); color: var(--mint-ink); }
-.board-wrap { position: relative; flex: 1; min-height: 0; margin: var(--s2) 0; touch-action: none; }
+.board-wrap { position: relative; flex: 1; min-height: 0; margin: var(--s2) 0; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; }
 .board-wrap canvas { position: absolute; inset: 0; display: block; }
 .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); flex: none; padding: 0 var(--s1); }
 .ctrl {
