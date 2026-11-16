@@ -77,15 +77,12 @@ export class Audio {
     if (!this.sfx || !this.ctx) return;
     const note = (k) => BASE * 2 ** (PENTA[Math.min(PENTA.length - 1, k)] / 12);
     switch (name) {
-      case 'select': this.tone({ f: 1320, dur: 0.05, gain: 0.05, type: 'triangle' }); break;
+      case 'select': break; // dokunma sesi yok
       case 'move': {
-        const now = performance.now();
-        this.combo = now - this.comboAt < 1800 ? this.combo + 1 : 0;
-        this.comboAt = now;
-        const f = note(this.combo % PENTA.length);
-        this.noise({ dur: 0.2, gain: 0.035, from: 700, to: 4200 });
-        this.tone({ f, dur: 0.32, gain: 0.13, type: 'sine' });
-        this.tone({ f: f * 2, dur: 0.18, gain: 0.025, type: 'sine', at: 0.005 });
+        // Ok sesi: kısa yay tıngırtısı + havayı yaran hızlı "fiyuv"
+        this.tone({ f: 190, dur: 0.07, gain: 0.09, type: 'triangle', slide: 0.6, filter: 900 });
+        this.noise({ dur: 0.24, gain: 0.07, from: 500, to: 5200 });
+        this.tone({ f: 1500, dur: 0.16, gain: 0.03, type: 'sine', slide: 0.3, at: 0.02 });
         break;
       }
       case 'blocked':

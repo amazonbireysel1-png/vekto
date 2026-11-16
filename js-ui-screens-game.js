@@ -103,9 +103,14 @@ export function gameScreen(app) {
       if (pts.size === 1) {
         const idx = (ended || session.finished) ? -1 : renderer.hitTest(e.clientX, e.clientY);
         tap = { id: e.pointerId, x: e.clientX, y: e.clientY, idx, moved: false };
-        if (idx >= 0) { renderer.press(idx, true); app.audio.play('select'); }
+        if (idx >= 0) {
+          renderer.press(idx, true);
+          // Uzun basış: okun gideceği yönü tahtanın dışına kadar göster
+          tap.timer = setTimeout(() => { if (tap && tap.id === e.pointerId && !tap.moved) { tap.long = true; renderer.setAim(idx); app.platform.haptic('light'); } }, 350);
+        }
       } else if (pts.size === 2) {
         if (tap?.idx >= 0) renderer.press(tap.idx, false);
+        if (tap) { clearTimeout(tap.timer); renderer.clearAim(); }
         tap = null;
         const [a, b] = [...pts.values()];
         const r = wrap.getBoundingClientRect();
@@ -128,6 +133,7 @@ export function gameScreen(app) {
       }
       if (tap && tap.id === e.pointerId && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 10) {
         if (tap.idx >= 0) renderer.press(tap.idx, false);
+        clearTimeout(tap.timer); renderer.clearAim();
         tap.moved = true; tap.idx = -1;
       }
       if (tap?.moved && renderer.canPan()) renderer.panBy(dx, dy);
@@ -137,9 +143,11 @@ export function gameScreen(app) {
       if (pts.size < 2) pinch = null;
       if (!tap || tap.id !== e.pointerId) return;
       const t = tap; tap = null;
+      clearTimeout(t.timer); renderer.clearAim();
       if (t.idx >= 0) renderer.press(t.idx, false);
-      if (!cancel && !t.moved && t.idx >= 0) act(t.idx);
+      if (!cancel && !t.moved && !t.long && t.idx >= 0) act(t.idx);
     };
+    wrap.addEventListener('contextmenu', (e) => e.preventDefault());
     wrap.addEventListener('pointerup', (e) => up(e, false));
     wrap.addEventListener('pointercancel', (e) => up(e, true));
     wrap.addEventListener('wheel', (e) => {
