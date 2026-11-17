@@ -275,7 +275,7 @@ export class BoardRenderer {
 
   drawAim(g, i, alpha = 0.85, solid = false) {
     const L = this.level, d = L.pd[i];
-    const [x0, y0] = this.toScreen(L.px[i] + DX[d] * 0.7, L.py[i] + DY[d] * 0.7);
+    const [x0, y0] = this.toScreen(L.px[i] + DX[d] * 0.34, L.py[i] + DY[d] * 0.34);
     const far = Math.hypot(this.W, this.H) + this.cell * 4;
     const x1 = x0 + DX[d] * far, y1 = y0 + DY[d] * far;
     g.save();
