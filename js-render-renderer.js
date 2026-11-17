@@ -119,15 +119,21 @@ export class BoardRenderer {
     this.ox = px - (px - this.ox) * k;
     this.oy = py - (py - this.oy) * k;
     this.z = z;
+    // En çok küçültülünce tahtanın tamamı ekranın ortasında görünür
+    if (this.level?.meta?.scroll && z <= this.minZoom + 1e-6) {
+      this.ox = (this.W - this.cs * z * this.level.w) / 2;
+      this.oy = (this.H - this.cs * z * this.level.h) / 2;
+    }
     this.clamp();
     this.anim.wake();
     this.onViewChange?.(this.z);
   }
 
-  /** Büyük tahtalarda iki parmakla uzaklaşınca tahtanın tamamı genişliğe sığana kadar küçülür. */
+  /** İki parmakla uzaklaşınca tahtanın tamamı (en ve boy) ekrana sığana kadar küçülür. */
   get minZoom() {
-    const base = this.level?.meta?.scroll ? Math.min(1, this.W / (this.level.w + 1.2) / this.cs) : 1;
-    return base * 0.6;
+    if (!this.level?.meta?.scroll) return 0.6;
+    const fitAll = Math.min(this.W / (this.level.w + 1.2), this.H / (this.level.h + 1.2)) / this.cs;
+    return Math.min(1, fitAll);
   }
 
   zoomBy(f) { this.zoomAt(this.z * f, this.W / 2, this.H / 2); }
