@@ -8,7 +8,7 @@
 
 import { createRng } from './js-core-rng.js';
 import { DX, DY, compileLevel, createState, cloneState, movableUnits, applyUnit } from './js-core-rules.js';
-import { measure } from './js-core-solver.js';
+import { measure, solve } from './js-core-solver.js';
 
 /**
  * p: { w, h, mask, density (0..1), blockBias (0..1), minLen, maxLen, straight (0..1),
@@ -339,11 +339,13 @@ function weaveOnce(p, seed) {
       for (const c of snakes) for (const x of c) finalMask[x] = 1;
       mask = finalMask;
       const final = compileLevel({ w, h, mask, snakes: snakes.map((c) => ({ cells: c, d: dirOf(c) })) });
+      if (p.deepen) deepen(final, rng, p.deepen);
+      const outSnakes = final.cells.map((c, i) => ({ cells: Array.from(c), d: final.pd[i] }));
       const metrics = measure(final, createState(final));
       if (!metrics.solvable) return null;
       let filled = 0;
       for (const c of snakes) filled += c.length;
-      return { level: final, def: { w, h, mask, snakes }, metrics, fill: filled / inside.length };
+      return { level: final, def: { w, h, mask, snakes: outSnakes }, metrics, fill: filled / inside.length };
     }
     const stuck = [];
     for (let i = 0; i < level.n; i++) if (s.alive[i]) stuck.push(i);
@@ -369,4 +371,110 @@ function weaveOnce(p, seed) {
     snakes = snakes.filter(Boolean);
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// İç içe geçirme: hücreler ve doluluk aynı kalır, yalnızca okların YÖNÜ (baş ucu) çevrilir.
+// Amaç: başlangıçta serbest ok sayısını azaltmak ve çözüm zincirini derinleştirmek;
+// yani bir oku çıkarınca altındakinin yolu açılsın, o çıkınca bir sonrakinin... Her adımda
+// bölüm çözülebilir kalır; tepeden tırnağa tek bir iç içe zincire yaklaşılır.
+// ---------------------------------------------------------------------------
+function deepen(level, rng, iters) {
+  const { n, w, h } = level;
+  const owner = new Int16Array(w * h).fill(-1);
+  for (let i = 0; i < n; i++) for (const c of level.cells[i]) owner[c] = i;
+  const dirOf = (i) => {
+    const c = level.cells[i], a = c[c.length - 2], b = c[c.length - 1];
+    const dx = (b % w) - (a % w), dy = ((b / w) | 0) - ((a / w) | 0);
+    return dx === 1 ? 1 : dx === -1 ? 3 : dy === 1 ? 2 : 0;
+  };
+  // Bir okun çıkış hattındaki tüm oklar (hepsi çıkmadan o çıkamaz)
+  const blockersOf = (i) => {
+    const c = level.cells[i], head = c[c.length - 1], d = dirOf(i);
+    const set = new Set();
+    let x = (head % w) + DX[d], y = ((head / w) | 0) + DY[d];
+    while (x >= 0 && y >= 0 && x < w && y < h) { const o = owner[y * w + x]; if (o >= 0) set.add(o); x += DX[d]; y += DY[d]; }
+    return set;
+  };
+  const deps = Array.from({ length: n }, (_, i) => blockersOf(i));
+  const depth = new Int16Array(n);
+  const mark = new Uint8Array(n);
+  const visit = (i) => {
+    if (mark[i] === 2) return depth[i];
+    if (mark[i] === 1) return -1; // döngü: çözülemez
+    mark[i] = 1;
+    let m = 0;
+    for (const b of deps[i]) { if (b === i) return -1; const v = visit(b); if (v < 0) return -1; if (v > m) m = v; }
+    mark[i] = 2; depth[i] = m + 1;
+    return depth[i];
+  };
+  const score = () => {
+    mark.fill(0);
+    let mx = 0, sum = 0, free = 0;
+    for (let i = 0; i < n; i++) { const v = visit(i); if (v < 0) return -Infinity; if (v > mx) mx = v; sum += v; if (deps[i].size === 0) free++; }
+    return mx * 3 - free * 2.5 + (sum / n) * 2;
+  };
+  const flip = (i) => {
+    level.cells[i].reverse();
+    const c = level.cells[i], b = c[c.length - 1];
+    level.pd[i] = dirOf(i); level.px[i] = b % w; level.py[i] = (b / w) | 0;
+  };
+  // Kuyruk aktarımı: bir okun kuyruk hücresi, kuyruğu o hücreye bitişik başka bir oka geçer.
+  // Başlar ve yönler değişmez; yalnızca hangi okun hangi hücreyi kapladığı değişir.
+  const transferTail = () => {
+    const A = (rng.next() * n) | 0;
+    const ca = level.cells[A];
+    if (ca.length < 3) return null;
+    const t = ca[0], tx = t % w, ty = (t / w) | 0;
+    for (const nd of rng.shuffle([0, 1, 2, 3])) {
+      const nx = tx + DX[nd], ny = ty + DY[nd];
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const B = owner[ny * w + nx];
+      if (B < 0 || B === A || level.cells[B][0] !== ny * w + nx) continue;
+      let touches = 0;
+      for (let q = 0; q < 4; q++) {
+        const qx = tx + DX[q], qy = ty + DY[q];
+        if (qx < 0 || qy < 0 || qx >= w || qy >= h) continue;
+        if (owner[qy * w + qx] === B) touches++;
+      }
+      if (touches !== 1) continue;
+      return { A, B, t };
+    }
+    return null;
+  };
+  const applyMove = (m) => {
+    level.cells[m.A] = level.cells[m.A].slice(1);
+    level.cells[m.B] = Int32Array.from([m.t, ...level.cells[m.B]]);
+    owner[m.t] = m.B;
+  };
+  const undoMove = (m) => {
+    level.cells[m.A] = Int32Array.from([m.t, ...level.cells[m.A]]);
+    level.cells[m.B] = level.cells[m.B].slice(1);
+    owner[m.t] = m.A;
+  };
+  let cur = score();
+  if (cur === -Infinity) return;
+  for (let it = 0; it < iters; it++) {
+    if (rng.chance(0.5)) {
+      const m = transferTail();
+      if (!m) continue;
+      const saved = deps.slice();
+      applyMove(m);
+      for (let k = 0; k < n; k++) deps[k] = blockersOf(k);
+      const e = score();
+      if (e >= cur) cur = e;
+      else { undoMove(m); for (let k = 0; k < n; k++) deps[k] = saved[k]; }
+      continue;
+    }
+    let i;
+    if (rng.chance(0.5)) { // başta serbest olan oklardan biri
+      const fr = []; for (let k = 0; k < n; k++) if (deps[k].size === 0) fr.push(k);
+      i = fr.length ? fr[(rng.next() * fr.length) | 0] : (rng.next() * n) | 0;
+    } else i = (rng.next() * n) | 0;
+    const old = deps[i];
+    flip(i); deps[i] = blockersOf(i);
+    const e = score();
+    if (e >= cur) cur = e;
+    else { flip(i); deps[i] = old; }
+  }
 }

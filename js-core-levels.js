@@ -72,27 +72,27 @@ function shapeFor(n) {
 export function paramsFor(n) {
   const kind = kindOf(n), t = cycleT(n), pos = (n - 1) % WAVE;
   const shape = shapeFor(n);
-  let w, h, density, blockBias, maxLen, straight, hardness;
+  let w, h, density, blockBias, maxLen, straight, hardness, deepen = 0;
   if (kind === 'easy') {
     w = 7 + Math.round(t * 4) + pos; h = Math.round(w * shapeAspect(shape));
     density = 0.78; blockBias = 0.4 + t * 0.25; maxLen = 4 + Math.round(t * 4); straight = 0.6; hardness = -1;
   } else if (kind === 'medium') {
-    w = 10 + Math.round(t * 4) + (pos - 2); h = Math.min(22, Math.round(w * shapeAspect(shape)));
-    density = 0.86; blockBias = 0.6 + t * 0.25; maxLen = 6 + Math.round(t * 6); straight = 0.5; hardness = 0;
+    w = 11 + Math.round(t * 4) + (pos - 2); h = Math.min(24, Math.round(w * shapeAspect(shape)));
+    density = 0.88; blockBias = 0.7 + t * 0.25; maxLen = 7 + Math.round(t * 7); straight = 0.45; hardness = 0.5; deepen = 1500;
   } else if (kind === 'hard') {
     // Ekrana ne enine ne boyuna sığar: sağa sola ve aşağı yukarı kaydırılır
-    w = 18 + Math.round(t * 4); h = Math.round(w * (1.75 + t * 0.2));
-    density = 0.93; blockBias = 0.85 + t * 0.1; maxLen = 10 + Math.round(t * 6); straight = 0.4; hardness = 0.7;
+    w = 19 + Math.round(t * 4); h = Math.round(w * (1.75 + t * 0.2));
+    density = 0.93; blockBias = 0.9 + t * 0.1; maxLen = 11 + Math.round(t * 7); straight = 0.36; hardness = 0.9; deepen = 3500;
   } else {
-    w = 22 + Math.round(t * 5); h = Math.min(58, Math.round(w * (1.9 + t * 0.2)));
-    density = 0.96; blockBias = 0.95; maxLen = 14 + Math.round(t * 6); straight = 0.32; hardness = 1;
+    w = 23 + Math.round(t * 5); h = Math.min(58, Math.round(w * (1.9 + t * 0.2)));
+    density = 0.96; blockBias = 1; maxLen = 15 + Math.round(t * 7); straight = 0.3; hardness = 1; deepen = 5000;
   }
   const r2 = createRng(hashString(`params-${n}`));
   return {
     shape, kind,
     params: {
       w, h, mask: shapeMask(shape, w, h), density, blockBias,
-      minLen: kind === 'easy' ? 2 : 3, maxLen, straight, hardness, attempts: kind === 'ultra' ? 3 : 4,
+      minLen: kind === 'easy' ? 2 : 3, maxLen, straight, hardness, deepen, attempts: kind === 'ultra' ? 3 : 4,
     },
     palette: Math.floor(r2.next() * PALETTES.length),
     pattern: PATTERNS[Math.floor(r2.next() * PATTERNS.length)],
