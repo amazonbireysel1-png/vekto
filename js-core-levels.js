@@ -6,7 +6,7 @@
 import { hashString, createRng } from './js-core-rng.js';
 import { compileLevel, createState } from './js-core-rules.js';
 import { generateWoven as generate } from './js-core-generator.js';
-import { shapeMask, shapeLabel, shapeAspect, SHAPE_NAMES, TALL_SHAPES } from './js-core-shapes.js';
+import { shapeMask, shapeLabel, shapeAspect, EASY_POOL, MEDIUM_POOL, TALL_POOL } from './js-core-shapes.js';
 import { HANDCRAFTED, parseHandcrafted } from './js-core-handcrafted.js';
 import { measure } from './js-core-solver.js';
 
@@ -53,20 +53,28 @@ const rotate = (k) => VIVID.slice(k).concat(VIVID.slice(0, k));
 export const PALETTES = VIVID.map((_, k) => ({ name: `Canlı ${k + 1}`, colors: rotate(k) }));
 export const PATTERNS = ['vertical', 'horizontal', 'radial', 'diagonal', 'angular'];
 
-const SIMPLE_SHAPES = ['square', 'circle', 'diamond', 'heart', 'hexagon', 'cross'];
+const PER_WAVE = { easy: 2, medium: 3 };
+const permMemo = new Map();
+/** Havuzun deterministik karışık sırası; iki tur arasında art arda tekrar olmaz. */
+function permutation(name, pool, p) {
+  const key = `${name}-${p}`;
+  if (permMemo.has(key)) return permMemo.get(key);
+  const rng = createRng(hashString(`shape-perm-${name}-${p}`));
+  const arr = pool.slice();
+  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  if (p > 0) { const prev = permutation(name, pool, p - 1); if (arr[0] === prev[prev.length - 1]) [arr[0], arr[1]] = [arr[1], arr[0]]; }
+  permMemo.set(key, arr);
+  return arr;
+}
+function pick(name, pool, idx) { return permutation(name, pool, Math.floor(idx / pool.length))[idx % pool.length]; }
 
-const shapeMemo = [];
-/** Seviye şekli: deterministik; art arda iki seviye asla aynı şekli almaz. */
+/** Seviye şekli: her tür kendi havuzunda dolaşır; havuz bitmeden aynı şekil tekrar etmez. */
 function shapeFor(n) {
   if (n <= 3) return 'square';
-  for (let k = shapeMemo.length || 4; k <= n; k++) {
-    if (shapeMemo[k]) continue;
-    const kind = kindOf(k);
-    const base = kind === 'easy' ? SIMPLE_SHAPES : kind === 'medium' ? SHAPE_NAMES : TALL_SHAPES;
-    const pool = base.filter((x) => x !== shapeMemo[k - 1]);
-    shapeMemo[k] = pool[Math.floor(createRng(hashString(`shape-${k}`)).next() * pool.length)];
-  }
-  return shapeMemo[n];
+  const wave = Math.floor((n - 1) / WAVE), pos = (n - 1) % WAVE;
+  if (pos < 2) return pick('easy', EASY_POOL, wave * 2 + pos);
+  if (pos < 5) return pick('medium', MEDIUM_POOL, wave * 3 + pos - 2);
+  return pick('tall', TALL_POOL, wave * 2 + pos - 5);
 }
 
 export function paramsFor(n) {
@@ -74,17 +82,17 @@ export function paramsFor(n) {
   const shape = shapeFor(n);
   let w, h, density, blockBias, maxLen, straight, hardness, deepen = 0;
   if (kind === 'easy') {
-    w = 7 + Math.round(t * 4) + pos; h = Math.round(w * shapeAspect(shape));
+    w = 8 + Math.round(t * 4) + pos; h = Math.round(w * shapeAspect(shape));
     density = 0.78; blockBias = 0.4 + t * 0.25; maxLen = 4 + Math.round(t * 4); straight = 0.6; hardness = -1;
   } else if (kind === 'medium') {
-    w = 11 + Math.round(t * 4) + (pos - 2); h = Math.min(24, Math.round(w * shapeAspect(shape)));
+    w = 13 + Math.round(t * 4) + (pos - 2); h = Math.min(27, Math.round(w * shapeAspect(shape)));
     density = 0.88; blockBias = 0.7 + t * 0.25; maxLen = 7 + Math.round(t * 7); straight = 0.45; hardness = 0.5; deepen = 1500;
   } else if (kind === 'hard') {
     // Ekrana ne enine ne boyuna sığar: sağa sola ve aşağı yukarı kaydırılır
-    w = 19 + Math.round(t * 4); h = Math.round(w * (1.75 + t * 0.2));
+    w = 25 + Math.round(t * 5); h = Math.round(w * (1.75 + t * 0.2));
     density = 0.93; blockBias = 0.9 + t * 0.1; maxLen = 11 + Math.round(t * 7); straight = 0.36; hardness = 0.9; deepen = 3500;
   } else {
-    w = 23 + Math.round(t * 5); h = Math.min(58, Math.round(w * (1.9 + t * 0.2)));
+    w = 30 + Math.round(t * 6); h = Math.min(76, Math.round(w * (1.9 + t * 0.2)));
     density = 0.96; blockBias = 1; maxLen = 15 + Math.round(t * 7); straight = 0.3; hardness = 1; deepen = 5000;
   }
   const r2 = createRng(hashString(`params-${n}`));
@@ -145,7 +153,7 @@ export function getDaily(dateKey) {
   if (cache.has(ck)) return cache.get(ck);
   const seed = hashString(`vekto2-daily-${dateKey}`);
   const rng = createRng(seed);
-  const shape = rng.pick(['heart', 'star', 'flower', 'butterfly', 'cat', 'apple', 'clover', 'moon', 'tree']);
+  const shape = rng.pick(['heart', 'star', 'flower', 'butterfly', 'cat', 'apple', 'clover', 'moon', 'pine']);
   const d = 0.55;
   const w = 18, h = Math.min(30, Math.round(w * shapeAspect(shape)));
   const res = safeGenerate({
