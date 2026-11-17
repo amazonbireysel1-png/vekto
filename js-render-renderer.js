@@ -270,15 +270,17 @@ export class BoardRenderer {
   /** Uzun basışta: okun gideceği yönü tahtanın dışına, ekran kenarına kadar gösterir. */
   setAim(i) { this.aim = i; this.anim.wake(); }
   clearAim() { if (this.aim != null) { this.aim = null; this.anim.wake(); } }
+  /** Tüm okların gideceği yönleri (kesişimleri) göster / gizle. */
+  setShowAll(on) { this.showAll = !!on; this.anim.wake(); }
 
-  drawAim(g, i) {
+  drawAim(g, i, alpha = 0.85) {
     const L = this.level, d = L.pd[i];
     const [x0, y0] = this.toScreen(L.px[i] + DX[d] * 0.7, L.py[i] + DY[d] * 0.7);
     const far = Math.hypot(this.W, this.H) + this.cell * 4;
     const x1 = x0 + DX[d] * far, y1 = y0 + DY[d] * far;
     g.save();
     g.strokeStyle = this.colors[i]; g.lineCap = 'round'; g.lineJoin = 'round';
-    g.globalAlpha = 0.85;
+    g.globalAlpha = alpha;
     g.lineWidth = Math.max(2, this.cell * 0.11);
     g.setLineDash([Math.max(4, this.cell * 0.28), Math.max(5, this.cell * 0.3)]);
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
@@ -340,6 +342,7 @@ export class BoardRenderer {
       for (const i of this.hint.unit) if (S.alive[i]) this.drawGuide(g, i, P.hint);
     }
 
+    if (this.showAll) { for (let i = 0; i < L.n; i++) if (S.alive[i]) this.drawAim(g, i, 0.6); }
     if (this.aim != null && S.alive[this.aim]) this.drawAim(g, this.aim);
 
     const lw = Math.max(1.4, c * 0.13);

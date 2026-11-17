@@ -23,13 +23,14 @@ export const LABELS = {
 const WAVE_KINDS = ['easy', 'easy', 'medium', 'medium', 'medium', 'hard', 'ultra'];
 const KIND_D = { easy: 0.12, medium: 0.4, hard: 0.72, ultra: 0.95 };
 
-export const kindOf = (n) => WAVE_KINDS[(n - 1) % WAVE];
-const cycleT = (n) => Math.min(1, Math.floor((n - 1) / WAVE) / (MAX_LEVEL / WAVE - 1));
+// İlk 5 bölüm Kolay, 6-7 Orta; 8. bölümden itibaren normal dalga düzeni başlar.
+export const kindOf = (n) => (n <= 5 ? 'easy' : n <= 7 ? 'medium' : WAVE_KINDS[(n - 8) % WAVE]);
+const cycleT = (n) => Math.min(1, (n <= 7 ? 0 : Math.floor((n - 8) / WAVE) + 1) / (MAX_LEVEL / WAVE - 1));
 
 /** 0 (kolay) … 1 (ultra zor). Dalga içindeki yer + dalganın ilerleyişi. */
 export function difficultyOf(n) {
   if (n <= 2) return 0.04 * n;
-  return Math.min(1, KIND_D[kindOf(n)] + cycleT(n) * 0.05 + ((n - 1) % WAVE === 4 ? 0.04 : 0));
+  return Math.min(1, KIND_D[kindOf(n)] + cycleT(n) * 0.05 + ((n - 8) % WAVE === 4 && n >= 8 ? 0.04 : 0));
 }
 
 export const DIFFICULTY_LABELS = [
@@ -60,9 +61,15 @@ function permutation(name, pool, p) {
   const key = `${name}-${p}`;
   if (permMemo.has(key)) return permMemo.get(key);
   const rng = createRng(hashString(`shape-perm-${name}-${p}`));
-  const arr = pool.slice();
-  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
-  if (p > 0) { const prev = permutation(name, pool, p - 1); if (arr[0] === prev[prev.length - 1]) [arr[0], arr[1]] = [arr[1], arr[0]]; }
+  let arr = pool.slice();
+  const prev = p > 0 ? permutation(name, pool, p - 1) : null;
+  const K = Math.floor(pool.length / 4);
+  for (let tries = 0; tries < 200; tries++) {
+    arr = pool.slice();
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    // Önceki turun son K şekli, bu turun ilk K şeklinde yer almasın
+    if (!prev || !arr.slice(0, K).some((x) => prev.slice(-K).includes(x))) break;
+  }
   permMemo.set(key, arr);
   return arr;
 }
@@ -71,36 +78,38 @@ function pick(name, pool, idx) { return permutation(name, pool, Math.floor(idx /
 /** Seviye şekli: her tür kendi havuzunda dolaşır; havuz bitmeden aynı şekil tekrar etmez. */
 function shapeFor(n) {
   if (n <= 3) return 'square';
-  const wave = Math.floor((n - 1) / WAVE), pos = (n - 1) % WAVE;
-  if (pos < 2) return pick('easy', EASY_POOL, wave * 2 + pos);
-  if (pos < 5) return pick('medium', MEDIUM_POOL, wave * 3 + pos - 2);
+  if (n <= 5) return pick('easy', EASY_POOL, n - 4);
+  if (n <= 7) return pick('medium', MEDIUM_POOL, n - 6);
+  const wave = Math.floor((n - 8) / WAVE), pos = (n - 8) % WAVE;
+  if (pos < 2) return pick('easy', EASY_POOL, 2 + wave * 2 + pos);
+  if (pos < 5) return pick('medium', MEDIUM_POOL, 2 + wave * 3 + pos - 2);
   return pick('tall', TALL_POOL, wave * 2 + pos - 5);
 }
 
 export function paramsFor(n) {
-  const kind = kindOf(n), t = cycleT(n), pos = (n - 1) % WAVE;
+  const kind = kindOf(n), t = cycleT(n), pos = n <= 5 ? n - 4 : n <= 7 ? n - 6 + 2 : (n - 8) % WAVE;
   const shape = shapeFor(n);
   let w, h, density, blockBias, maxLen, straight, hardness, deepen = 0;
   if (kind === 'easy') {
     w = 8 + Math.round(t * 4) + pos; h = Math.round(w * shapeAspect(shape));
-    density = 0.78; blockBias = 0.4 + t * 0.25; maxLen = 4 + Math.round(t * 4); straight = 0.6; hardness = -1;
+    density = 0.78; blockBias = 0.4 + t * 0.25; maxLen = 6 + Math.round(t * 4); straight = 0.6; hardness = -1;
   } else if (kind === 'medium') {
     w = 13 + Math.round(t * 4) + (pos - 2); h = Math.min(27, Math.round(w * shapeAspect(shape)));
-    density = 0.88; blockBias = 0.7 + t * 0.25; maxLen = 7 + Math.round(t * 7); straight = 0.45; hardness = 0.5; deepen = 1500;
+    density = 0.88; blockBias = 0.7 + t * 0.25; maxLen = 10 + Math.round(t * 8); straight = 0.45; hardness = 0.5; deepen = 1500;
   } else if (kind === 'hard') {
     // Ekrana ne enine ne boyuna sığar: sağa sola ve aşağı yukarı kaydırılır
     w = 25 + Math.round(t * 5); h = Math.round(w * (1.75 + t * 0.2));
-    density = 0.93; blockBias = 0.9 + t * 0.1; maxLen = 11 + Math.round(t * 7); straight = 0.36; hardness = 0.9; deepen = 3500;
+    density = 0.93; blockBias = 0.9 + t * 0.1; maxLen = 16 + Math.round(t * 9); straight = 0.36; hardness = 0.9; deepen = 3500;
   } else {
     w = 30 + Math.round(t * 6); h = Math.min(76, Math.round(w * (1.9 + t * 0.2)));
-    density = 0.96; blockBias = 1; maxLen = 15 + Math.round(t * 7); straight = 0.3; hardness = 1; deepen = 5000;
+    density = 0.96; blockBias = 1; maxLen = 22 + Math.round(t * 9); straight = 0.3; hardness = 1; deepen = 5000;
   }
   const r2 = createRng(hashString(`params-${n}`));
   return {
     shape, kind,
     params: {
       w, h, mask: shapeMask(shape, w, h), density, blockBias,
-      minLen: kind === 'easy' ? 2 : 3, maxLen, straight, hardness, deepen, attempts: kind === 'ultra' ? 3 : 4,
+      minLen: kind === 'easy' ? 3 : kind === 'medium' ? 4 : kind === 'hard' ? 6 : 8, maxLen, straight, hardness, deepen, attempts: kind === 'ultra' ? 3 : 4,
     },
     palette: Math.floor(r2.next() * PALETTES.length),
     pattern: PATTERNS[Math.floor(r2.next() * PATTERNS.length)],

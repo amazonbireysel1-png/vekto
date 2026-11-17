@@ -459,3 +459,6 @@ svg { display: block; }
 .league-card .txt small { font-size: 13px; font-weight: 700; color: var(--t1); }
 .league-card .chev { flex: none; opacity: .5; }
 .league-card .chev svg { width: 18px; height: 18px; }
+
+.ctrl[data-act="rays"].on { background: #E9F0FF; box-shadow: inset 0 0 0 1.5px #7BA0F0, var(--sh-1); }
+.ctrl[data-act="rays"].on svg { color: #1F4FC4; }

@@ -40,7 +40,7 @@ export function gameScreen(app) {
       <section class="screen game" aria-label="Oyun">
         <header class="topbar">
           <button class="icon-btn" data-act="back" aria-label="Ana sayfa">${icon.home}</button>
-          <div class="title">${esc(title)}${tag}<small>${esc(level.meta.shapeName)}</small></div>
+          <div class="title">${esc(title)}${tag}</div>
           <div style="width:44px"></div>
         </header>
         <div class="status-row" data-status></div>
@@ -48,7 +48,7 @@ export function gameScreen(app) {
         </div>
         <nav class="controls">
           <button class="ctrl" data-act="undo" aria-label="Geri al">${icon.undo}<span>Geri al</span><em class="badge num" data-undo></em></button>
-          <button class="ctrl" data-act="restart" aria-label="Yeniden başlat">${icon.restart}<span>Yeniden</span></button>
+          <button class="ctrl" data-act="rays" aria-pressed="false" aria-label="Okların yönlerini göster">${icon.rays}<span>Yönler</span></button>
           <button class="ctrl" data-act="hint" aria-label="İpucu">${icon.hint}<span>İpucu</span><em class="badge num" data-hint></em></button>
         </nav>
       </section>`);
@@ -60,6 +60,7 @@ export function gameScreen(app) {
     renderer.setTheme(app.theme());
     let hintNote = null;
     let ended = false;
+    let showAll = false;
 
     const persist = () => {
       if (session.finished) { save.resume = null; app.save.touch(); return; }
@@ -346,7 +347,12 @@ export function gameScreen(app) {
 
     onTap($('[data-act="back"]'), () => app.router.home(), { app, sound: 'back' });
     onTap($('[data-act="undo"]'), doUndo, { app });
-    onTap($('[data-act="restart"]'), () => { if (!ended) start(true); }, { app });
+    onTap($('[data-act="rays"]'), () => {
+      if (ended) return;
+      showAll = !showAll; renderer.setShowAll(showAll);
+      $('[data-act="rays"]').classList.toggle('on', showAll);
+      $('[data-act="rays"]').setAttribute('aria-pressed', String(showAll));
+    }, { app });
     onTap($('[data-act="hint"]'), doHint, { app });
 
     const off = app.save.onChange(() => updateHud());
