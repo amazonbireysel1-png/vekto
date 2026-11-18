@@ -24,23 +24,23 @@ const WAVE_KINDS = ['easy', 'easy', 'medium', 'medium', 'medium', 'hard', 'ultra
 const KIND_D = { easy: 0.12, medium: 0.4, hard: 0.72, ultra: 0.95 };
 
 // Zorluk çizelgesi:
-//   1-10   Kolay
-//   11-39  Orta (her 5. bölüm Kolay, nefes payı)
-//   40-50  Kolay / Orta / Zor karışık (3 Zor)
-//   51-100 7'lik dalga; her ikinci dalgada Ultra zor yerine Zor (Ultra zor seyrek)
-//   101+   normal dalga: 2 Kolay, 3 Orta, 1 Zor, 1 Ultra zor
-const MIX_40_50 = ['medium', 'easy', 'medium', 'hard', 'medium', 'easy', 'medium', 'hard', 'easy', 'medium', 'hard'];
+//   1-8    Kolay
+//   9-24   Orta (her 5. bölüm Kolay, nefes payı)
+//   25-30  Kolay / Orta / Zor karışık (2 Zor)
+//   31-60  7'lik dalga; her ikinci dalgada Ultra zor yerine Zor (Ultra zor seyrek)
+//   61+    normal dalga: 2 Kolay, 3 Orta, 1 Zor, 1 Ultra zor
+const MIX_25_30 = ['medium', 'easy', 'hard', 'medium', 'hard', 'easy'];
 function buildKinds() {
   const ks = [null];
   for (let n = 1; n <= MAX_LEVEL; n++) {
     let k;
-    if (n <= 10) k = 'easy';
-    else if (n < 40) k = n % 5 === 0 ? 'easy' : 'medium';
-    else if (n <= 50) k = MIX_40_50[n - 40];
+    if (n <= 8) k = 'easy';
+    else if (n < 25) k = n % 5 === 0 ? 'easy' : 'medium';
+    else if (n <= 30) k = MIX_25_30[n - 25];
     else {
-      const wave = Math.floor((n - 51) / WAVE);
-      k = WAVE_KINDS[(n - 51) % WAVE];
-      if (k === 'ultra' && n <= 100 && wave % 2 === 1) k = 'hard';
+      const wave = Math.floor((n - 31) / WAVE);
+      k = WAVE_KINDS[(n - 31) % WAVE];
+      if (k === 'ultra' && n <= 60 && wave % 2 === 1) k = 'hard';
     }
     ks.push(k);
   }
@@ -118,7 +118,7 @@ function shapeFor(n) {
 
 export function paramsFor(n) {
   const kind = kindOf(n), t = cycleT(n);
-  const pos = kind === 'easy' ? (n <= 10 ? Math.round((n - 4) / 2) : 1 + (KIND_IDX[n] % 2)) : 2 + (KIND_IDX[n] % 3);
+  const pos = kind === 'easy' ? (n <= 8 ? Math.round((n - 4) / 2) : 1 + (KIND_IDX[n] % 2)) : 2 + (KIND_IDX[n] % 3);
   const shape = shapeFor(n);
   let w, h, density, blockBias, maxLen, straight, hardness, deepen = 0;
   if (kind === 'easy') {
