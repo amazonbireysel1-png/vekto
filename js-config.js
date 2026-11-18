@@ -3,7 +3,7 @@
 export const APP = {
   name: 'Vekto',
   version: '1.0.0',
-  privacyUrl: '', // Play Console için gizlilik politikası adresi (yayın öncesi doldurulacak)
+  privacyUrl: 'https://amazonbireysel1-png.github.io/vekto/gizlilik.html', // Play Console için gizlilik politikası adresi (yayın öncesi doldurulacak)
 };
 
 // Global lig (Firebase Firestore + anonim giriş). Boşsa lig gizlenir, oyun yine çalışır.
