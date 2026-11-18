@@ -211,7 +211,7 @@ export class BoardRenderer {
     for (const i of unit) {
       const path = this.paths[i];
       const dist = path.toEdge + path.len + 0.5;
-      this.v.flying[i] = 1; this.v.press[i] = 0;
+      this.v.flying[i] = 1; this.v.press[i] = 0; this.v.queued[i] = 0;
       const dur = Math.min(900, 220 + dist * 26);
       let sparked = false;
       this.anim.add({ key: `p${i}`, dur, delay, ease: (t) => 0.4 * t + 0.6 * t * t,
@@ -360,7 +360,7 @@ export class BoardRenderer {
         this.drawSnake(g, i, lw * 3.4, isNext ? P.hintNext : P.hint, (isNext ? 0.25 : 0.32) + pulse * 0.25);
       }
       if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, this.queuedColor, v.flash[i] * 0.3);
-      const hitMode = v.hit[i] > 0 && this.theme?.black;
+      const hitMode = (v.queued[i] > 0 || v.hit[i] > 0) && this.theme?.black && !v.flying[i];
       this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), hitMode ? '#15161A' : v.queued[i] ? this.queuedColor : this.colors[i], v.a[i], hitMode);
     }
 
@@ -410,7 +410,7 @@ export class BoardRenderer {
     g.stroke();
     if (redDash) {
       // Bir kırmızı, bir siyah: aynı yolu kırmızı kesik çizgiyle yeniden çiz
-      g.strokeStyle = '#E5162B'; g.setLineDash([lw * 2.4, lw * 2.4]);
+      g.strokeStyle = '#E5162B'; g.setLineDash([lw * 4.2, lw * 1.8]);
       g.stroke(); g.setLineDash([]); g.strokeStyle = color;
     }
     // Ok başı: başın hareket yönünde üçgen

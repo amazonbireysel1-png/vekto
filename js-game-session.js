@@ -33,7 +33,7 @@ export class Session {
   /** Oka dokunma. Dönüş: { type: 'move'|'blocked'|'locked'|'chain'|'ignored', ... } */
   tap(i) {
     if (this.finished || i < 0 || i >= this.level.n || !this.state.alive[i]) return { type: 'ignored' };
-    if (this.queued.has(i)) return { type: 'ignored' }; // zaten sırada bekliyor
+    // Sırada bekleyen ok yeniden denenebilir: yolu hâlâ kapalıysa can gider, açıksa çıkar
     const ev = evaluate(this.level, this.state, i);
     this.moves++;
     if (!ev.ok) {
