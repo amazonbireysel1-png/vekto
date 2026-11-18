@@ -26,7 +26,7 @@ export function defaultSave() {
     achievements: {},         // id → zaman damgası
     milestones: {},           // id → true
     themes: { owned: ['pattern'], active: 'pattern' },
-    settings: { sound: true, music: false, haptics: true, reducedMotion: false },
+    settings: { sound: true, music: false, haptics: true, reducedMotion: false, blackArrows: false },
     tutorials: {},
     ads: { lastInterstitial: 0, levelsSince: 0 },
   };

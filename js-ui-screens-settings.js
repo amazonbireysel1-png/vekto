@@ -6,7 +6,7 @@ export function settingsScreen(app) {
   return () => {
     const s = app.save.data.settings;
     const row = (key, ic, label, sub) => `
-      <button class="set-row" data-key="${key}" role="switch" aria-checked="${s[key]}">
+      <button class="set-row" data-key="${key}" role="switch" aria-checked="${!!s[key]}">
         ${ic.replace('<svg', '<svg class="ic"')}
         <span class="txt">${label}${sub ? `<small>${sub}</small>` : ''}</span>
         <span class="switch ${s[key] ? 'on' : ''}"></span>
@@ -25,6 +25,10 @@ export function settingsScreen(app) {
             ${row('music', icon.music, 'Arka plan müziği', 'Sakin, dikkat dağıtmayan akorlar')}
             ${row('haptics', icon.vibrate, 'Titreşim')}
             ${row('reducedMotion', icon.motion, 'Azaltılmış hareket', 'Animasyonları kısaltır')}
+          </div>
+          <div class="section-title">Görünüm</div>
+          <div class="set-list">
+            ${row('blackArrows', icon.arrowUp, 'Siyah oklar', 'Tüm oklar siyah olur. İlerleme ve puanlar aynı, ayrı oyun değil')}
           </div>
           <p class="about">Vekto ${APP.version}<br>İnternet olmadan oynanabilir. İlerleme bu cihazda saklanır; lig için yalnızca takma adın ve puanın sunucuya gönderilir.<br>Yazı tipi: Inter (SIL Open Font License).</p>
         </div>

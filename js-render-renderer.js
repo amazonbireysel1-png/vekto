@@ -26,6 +26,8 @@ export class BoardRenderer {
 
   destroy() { this.ro.disconnect(); this.anim.clear(); }
 
+  /** Sıradaki (hatalı dokunulmuş) ok rengi: siyah modda açık gri, böylece normal siyah oklardan ayrılır. */
+  get queuedColor() { return this.theme?.black ? '#9BA1AA' : P.queued; }
   setTheme(theme) { this.theme = theme; if (this.level) this.computeColors(); this.anim.wake(); }
 
   setLevel(level, state) {
@@ -355,8 +357,8 @@ export class BoardRenderer {
         const isNext = !this.hint.unit.includes(i);
         this.drawSnake(g, i, lw * 3.4, isNext ? P.hintNext : P.hint, (isNext ? 0.25 : 0.32) + pulse * 0.25);
       }
-      if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, P.queued, v.flash[i] * 0.3);
-      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), v.queued[i] ? P.queued : this.colors[i], v.a[i]);
+      if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, this.queuedColor, v.flash[i] * 0.3);
+      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), v.queued[i] ? this.queuedColor : this.colors[i], v.a[i]);
     }
 
     if (this.particles.length) {

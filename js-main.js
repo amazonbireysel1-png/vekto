@@ -60,7 +60,11 @@ class App {
 
   idle(fn) { (window.requestIdleCallback || ((f) => setTimeout(f, 200)))(fn); }
 
-  theme() { return themeById(this.save.data.themes.active); }
+  theme() {
+    const t = themeById(this.save.data.themes.active);
+    // Siyah ok modu: aynı ilerleme, yalnızca görünüm değişir
+    return this.save.data.settings.blackArrows ? { ...t, mono: '#15161A', pastel: false, black: true } : t;
+  }
 
   applySettings() {
     const s = this.save.data.settings;
