@@ -79,15 +79,15 @@ export class Audio {
     switch (name) {
       case 'select': break; // dokunma sesi yok
       case 'move': {
-        // Ok sesi: temiz, tiz bir "fiyuv" (havayı yaran ok) — alçak tını yok
-        this.noise({ dur: 0.2, gain: 0.07, from: 2200, to: 6500 });
-        this.tone({ f: 2200, dur: 0.14, gain: 0.025, type: 'sine', slide: 0.45, attack: 0.004 });
-        this.tone({ f: 3300, dur: 0.1, gain: 0.012, type: 'sine', slide: 0.5, at: 0.015, attack: 0.004 });
+        // Ok sesi: küçük bir tık ve arkasından hafif hava sesi
+        this.tone({ f: 1800, dur: 0.03, gain: 0.12, type: 'sine', slide: 0.33, attack: 0.001 });
+        this.noise({ at: 0.02, dur: 0.22, gain: 0.06, from: 1500, to: 4500 });
         break;
       }
       case 'blocked':
-        this.tone({ f: 170, dur: 0.16, gain: 0.16, type: 'triangle', slide: 0.75, filter: 900 });
-        this.tone({ f: 120, dur: 0.12, gain: 0.08, type: 'sine', at: 0.02 });
+        // Çarpma: yay gibi geri tepen yumuşak "boing"
+        this.tone({ f: 420, dur: 0.22, gain: 0.14, type: 'sine', slide: 0.43, attack: 0.003 });
+        this.tone({ f: 840, dur: 0.22, gain: 0.035, type: 'sine', slide: 0.43, attack: 0.003 });
         break;
       case 'refuse':
         this.tone({ f: 330, dur: 0.09, gain: 0.07, type: 'triangle', filter: 1400 });

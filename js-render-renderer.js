@@ -36,7 +36,7 @@ export class BoardRenderer {
     this.v = {
       s: new Float32Array(n),            // yol üzerindeki ilerleme (hücre)
       a: new Float32Array(n).fill(1),    // saydamlık
-      press: new Float32Array(n), flash: new Float32Array(n),
+      press: new Float32Array(n), flash: new Float32Array(n), hit: new Float32Array(n),
       flying: new Uint8Array(n), queued: new Uint8Array(n),
     };
     // Her ok için uzatılmış yol: gövde + başın yönünde tahtanın dışına kadar
@@ -244,6 +244,8 @@ export class BoardRenderer {
       },
       done: () => { this.v.s[i] = 0; } });
     this.v.queued[i] = 1; this.anim.wake();
+    // Siyah ok modunda çarpan ok bir süre kırmızı-siyah kesik çizgili görünür
+    this.anim.add({ key: `hit${i}`, dur: out + 700, ease: ease.linear, update: () => { this.v.hit[i] = 1; }, done: () => { this.v.hit[i] = 0; } });
     this.flash(i);
     if (p && p.blocker >= 0) setTimeout(() => this.flash(p.blocker, 0.6), out * 0.8);
   }
@@ -358,7 +360,8 @@ export class BoardRenderer {
         this.drawSnake(g, i, lw * 3.4, isNext ? P.hintNext : P.hint, (isNext ? 0.25 : 0.32) + pulse * 0.25);
       }
       if (v.flash[i] > 0) this.drawSnake(g, i, lw * 3, this.queuedColor, v.flash[i] * 0.3);
-      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), v.queued[i] ? this.queuedColor : this.colors[i], v.a[i]);
+      const hitMode = v.hit[i] > 0 && this.theme?.black;
+      this.drawSnake(g, i, lw * (1 + v.press[i] * 0.35), hitMode ? '#15161A' : v.queued[i] ? this.queuedColor : this.colors[i], v.a[i], hitMode);
     }
 
     if (this.particles.length) {
@@ -381,7 +384,7 @@ export class BoardRenderer {
   }
 
   /** Oku, yolu üzerinde v.s kadar ilerlemiş olarak çizer (gövde + ok başı). */
-  drawSnake(g, i, lw, color, alpha) {
+  drawSnake(g, i, lw, color, alpha, redDash = false) {
     const path = this.paths[i];
     const s = this.v.s[i];
     const pts = path.pts, len = path.len;
@@ -405,6 +408,11 @@ export class BoardRenderer {
     const [ex, ey] = this.toScreen(hx, hy);
     g.lineTo(ex, ey);
     g.stroke();
+    if (redDash) {
+      // Bir kırmızı, bir siyah: aynı yolu kırmızı kesik çizgiyle yeniden çiz
+      g.strokeStyle = '#E5162B'; g.setLineDash([lw * 2.4, lw * 2.4]);
+      g.stroke(); g.setLineDash([]); g.strokeStyle = color;
+    }
     // Ok başı: başın hareket yönünde üçgen
     const d = this.level.pd[i];
     const dir = len > 1 ? segDir(pts, end) : d;
