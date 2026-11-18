@@ -39,6 +39,8 @@ export const icon = {
   plus: S('<path d="M12 5.5v13M5.5 12h13"/>'),
   minus: S('<path d="M5.5 12h13"/>'),
   fit: S('<path d="M4.5 9V4.5H9M15 4.5h4.5V9M19.5 15v4.5H15M9 19.5H4.5V15"/>'),
+  modeBlack: S('<path d="M12 19V6M6 11.5 12 5.5l6 6" stroke="#15161A" stroke-width="3"/>'),
+  modeColor: S('<path d="M7 19V8M3.5 11.5 7 8l3.5 3.5" stroke="#F505B4" stroke-width="2.6"/><path d="M17 19V8M13.5 11.5 17 8l3.5 3.5" stroke="#00B815" stroke-width="2.6"/><path d="M12 19V4M8.5 7.5 12 4l3.5 3.5" stroke="#FF9A00" stroke-width="2.6"/>'),
   arrowUp: S('<path d="M12 18.5V6M6.5 11L12 5.5 17.5 11"/>', 'stroke-width="2.6"'),
 };
 

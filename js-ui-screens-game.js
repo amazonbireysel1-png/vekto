@@ -40,16 +40,16 @@ export function gameScreen(app) {
       <section class="screen game" aria-label="Oyun">
         <header class="topbar">
           <button class="icon-btn" data-act="back" aria-label="Ana sayfa">${icon.home}</button>
+          <button class="icon-btn hint-btn" data-act="hint" aria-label="İpucu">${icon.hint}<em class="badge num" data-hint></em></button>
           <div class="title">${esc(title)}${tag}</div>
-          <div style="width:44px"></div>
+          <div style="width:96px"></div>
         </header>
         <div class="status-row" data-status></div>
         <div class="board-wrap" data-board><canvas aria-label="Oyun tahtası"></canvas>
         </div>
         <nav class="controls">
-          <button class="ctrl" data-act="undo" aria-label="Geri al">${icon.undo}<span>Geri al</span><em class="badge num" data-undo></em></button>
           <button class="ctrl" data-act="rays" aria-pressed="false" aria-label="Okların yönlerini göster">${icon.rays}<span>Yönler</span></button>
-          <button class="ctrl" data-act="hint" aria-label="İpucu">${icon.hint}<span>İpucu</span><em class="badge num" data-hint></em></button>
+          <button class="ctrl" data-act="mode" aria-label="Ok rengi modu"></button>
         </nav>
       </section>`);
 
@@ -74,9 +74,6 @@ export function gameScreen(app) {
       const st = $('[data-status]');
       const hearts = Array.from({ length: LIVES }, (_, k) => `<i class="heart ${k < session.lives ? 'on' : ''}">${icon.heart}</i>`).join('');
       st.innerHTML = `<span class="lives" aria-label="${session.lives} can">${hearts}</span><span class="chip num">${session.state.aliveCount} ok kaldı</span><span class="chip num pts" data-pts>${icon.bolt || ''}${app.save.data.points} puan</span>`;
-      const u = $('[data-undo]');
-      u.textContent = session.undosLeft;
-      $('[data-act="undo"]').disabled = !session.canUndo();
       const hb = $('[data-hint]');
       hb.className = 'badge num' + (save.hints > 0 ? '' : ' empty');
       hb.textContent = save.hints;
@@ -346,7 +343,6 @@ export function gameScreen(app) {
     }
 
     onTap($('[data-act="back"]'), () => app.router.home(), { app, sound: 'back' });
-    onTap($('[data-act="undo"]'), doUndo, { app });
     onTap($('[data-act="rays"]'), () => {
       if (ended) return;
       showAll = !showAll; renderer.setShowAll(showAll);
@@ -354,6 +350,20 @@ export function gameScreen(app) {
       $('[data-act="rays"]').setAttribute('aria-pressed', String(showAll));
     }, { app });
     onTap($('[data-act="hint"]'), doHint, { app });
+    const modeBtn = $('[data-act="mode"]');
+    const paintMode = () => {
+      const black = !!app.save.data.settings.blackArrows;
+      modeBtn.innerHTML = (black ? icon.modeColor : icon.modeBlack) + `<span>${black ? 'Renkli oklar' : 'Siyah oklar'}</span>`;
+      modeBtn.setAttribute('aria-label', black ? 'Renkli oklara geç' : 'Siyah oklara geç');
+    };
+    paintMode();
+    onTap(modeBtn, () => {
+      const st = app.save.data.settings;
+      st.blackArrows = !st.blackArrows;
+      app.applySettings(); app.save.touch();
+      renderer.setTheme(app.theme());
+      paintMode();
+    }, { app });
 
     const off = app.save.onChange(() => updateHud());
 
@@ -369,6 +379,7 @@ export function gameScreen(app) {
       session: () => session,
       renderer,
       debugTap: (i) => act(i),
+      undo: () => doUndo(),
     };
   };
 }

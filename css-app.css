@@ -123,7 +123,7 @@ svg { display: block; }
 .chip.ok { background: var(--mint); color: var(--mint-ink); }
 .board-wrap { position: relative; flex: 1; min-height: 0; margin: var(--s2) 0; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; }
 .board-wrap canvas { position: absolute; inset: 0; display: block; }
-.controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); flex: none; padding: 0 var(--s1); }
+.controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); flex: none; padding: 0 var(--s1); }
 .ctrl {
   position: relative; height: 60px; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
@@ -462,3 +462,7 @@ svg { display: block; }
 
 .ctrl[data-act="rays"].on { background: #E9F0FF; box-shadow: inset 0 0 0 1.5px #7BA0F0, var(--sh-1); }
 .ctrl[data-act="rays"].on svg { color: #1F4FC4; }
+
+.topbar .hint-btn { position: relative; margin-left: 8px; }
+.topbar .hint-btn .badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--blue); color: var(--blue-ink); font-size: 11px; font-weight: 700; font-style: normal; display: grid; place-items: center; }
+.topbar .hint-btn .badge.empty { background: var(--surface-2); color: var(--ink-2); }
