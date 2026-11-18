@@ -30,7 +30,7 @@ export function settingsScreen(app) {
           <div class="set-list">
             ${row('blackArrows', icon.arrowUp, 'Siyah oklar', 'Tüm oklar siyah olur. İlerleme ve puanlar aynı, ayrı oyun değil')}
           </div>
-          <p class="about">Vekto ${APP.version}<br>İnternet olmadan oynanabilir. İlerleme bu cihazda saklanır; lig için yalnızca takma adın ve puanın sunucuya gönderilir.<br>Yazı tipi: Inter (SIL Open Font License).</p>
+          <p class="about">Vekto ${APP.version}<br>Oynamak için internet gerekir. İlerleme bu cihazda saklanır; lig için yalnızca takma adın ve puanın sunucuya gönderilir.<br>Yazı tipi: Inter (SIL Open Font License).</p>
         </div>
       </section>`);
     onTap(node.querySelector('[data-act="back"]'), () => app.router.back(), { app, sound: 'back' });
