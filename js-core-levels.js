@@ -164,6 +164,14 @@ function safeGenerate(params, seed) {
   throw new Error('Bölüm üretilemedi');
 }
 
+/** Bantlı renk: bazı Orta/Zor/Ultra zor bölümlerde şekil üstten alta 3-4 net renk bandına bölünür. */
+function bandsFor(n) {
+  if (n < 9 || kindOf(n) === 'easy') return 0;
+  const h = hashString(`bands-${n}`);
+  if (h % 6 !== 0) return 0;
+  return 3 + ((h >>> 8) % 2);
+}
+
 /** Seviye n (1…700). Deterministik: her cihazda aynı seviye. */
 export function getLevel(n) {
   n = Math.max(1, Math.min(MAX_LEVEL, n | 0));
@@ -181,7 +189,7 @@ export function getLevel(n) {
   }
   level.meta = {
     n, kind: 'level', shape, shapeName: shapeLabel(shape), boss: isBoss(n), difficulty: d,
-    label: levelLabel(n), scroll: isScrollLevel(n), palette, pattern, tutorial: hand?.tutorial || null,
+    label: levelLabel(n), scroll: isScrollLevel(n), palette, pattern, bands: hand ? 0 : bandsFor(n), tutorial: hand?.tutorial || null,
     metrics: measure(level, createState(level)),
   };
   return remember(n, level);

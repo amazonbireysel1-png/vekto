@@ -65,8 +65,12 @@ export class BoardRenderer {
     const pal = PALETTES[L.meta.palette ?? 0].colors;
     const pattern = L.meta.pattern || 'diagonal';
     this.colors = [];
+    this.pieces = null;
+    const bands = !T.mono && L.meta.bands > 0 ? L.meta.bands : 0;
+    if (bands) this.computeBands(bands, pal, T);
     for (let i = 0; i < L.n; i++) {
       if (T.mono) { this.colors.push(T.mono); continue; }
+      if (bands) { this.colors.push(this.pieces[i][this.pieces[i].length - 1].color); continue; }
       let cx = 0, cy = 0;
       for (const c of L.cells[i]) { cx += c % L.w; cy += (c / L.w) | 0; }
       cx = cx / L.cells[i].length / Math.max(1, L.w - 1); cy = cy / L.cells[i].length / Math.max(1, L.h - 1);
@@ -79,6 +83,34 @@ export class BoardRenderer {
       const jitter = (((i * 2654435761) >>> 0) % 1000) / 1000 * 0.16 - 0.08;
       const k = Math.max(0, Math.min(pal.length - 1, Math.floor((t + jitter) * pal.length)));
       this.colors.push(T.pastel ? mix(pal[k], '#FFFFFF', 0.38) : pal[k]);
+    }
+  }
+
+  /** Bantlı renk: her ok, geçtiği bantlara göre renk parçalarına ayrılır (sınırda ikiye bölünür). */
+  computeBands(count, pal, T) {
+    const L = this.level;
+    let minY = Infinity, maxY = -Infinity;
+    for (const cs of L.cells) for (const c of cs) { const y = (c / L.w) | 0; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    const span = maxY - minY + 1;
+    // Bant renkleri: paletten, birbirine uzak sıralı 3-4 renk
+    const order = [0, 3, 5, 1, 4, 6, 2];
+    const base = order.slice(0, count).map((k) => pal[k % pal.length]);
+    const bandOf = (y) => Math.max(0, Math.min(count - 1, Math.floor(((y - minY) / span) * count)));
+    this.pieces = [];
+    for (let i = 0; i < L.n; i++) {
+      const tone = (c) => { const t = i % 3; const col = t === 1 ? mix(c, '#FFFFFF', 0.2) : t === 2 ? mix(c, '#000000', 0.14) : c; return T.pastel ? mix(col, '#FFFFFF', 0.38) : col; };
+      const cells = L.cells[i];
+      const ys = cells.map((c) => bandOf((c / L.w) | 0));
+      const out = [];
+      let from = 0;
+      for (let k = 1; k <= cells.length; k++) {
+        if (k === cells.length || ys[k] !== ys[from]) {
+          // parça: from…k-1; sınır iki hücrenin ortasında
+          out.push({ a: from === 0 ? 0 : from - 0.5, b: k === cells.length ? cells.length - 1 : k - 0.5, color: tone(base[ys[from]]) });
+          from = k;
+        }
+      }
+      this.pieces.push(out);
     }
   }
 
@@ -396,18 +428,28 @@ export class BoardRenderer {
     const start = s, end = s + len - 1;
     g.globalAlpha = alpha;
     g.strokeStyle = color; g.fillStyle = color; g.lineWidth = lw;
-    g.beginPath();
-    let [x, y] = at(start);
-    let [sx, sy] = this.toScreen(x, y);
-    g.moveTo(sx, sy);
-    for (let k = Math.floor(start) + 1; k < end; k++) {
-      [sx, sy] = this.toScreen(pts[k][0], pts[k][1]);
+    const stroke = (qa, qb) => {
+      g.beginPath();
+      const [x, y] = at(qa);
+      let [sx, sy] = this.toScreen(x, y);
+      g.moveTo(sx, sy);
+      for (let k = Math.floor(qa) + 1; k < qb; k++) {
+        [sx, sy] = this.toScreen(pts[k][0], pts[k][1]);
+        g.lineTo(sx, sy);
+      }
+      const [qx, qy] = at(qb);
+      [sx, sy] = this.toScreen(qx, qy);
       g.lineTo(sx, sy);
-    }
+      g.stroke();
+    };
+    const pcs = this.pieces && color === this.colors[i] && !redDash ? this.pieces[i] : null;
+    if (pcs && pcs.length > 1) {
+      g.lineCap = 'butt';
+      for (const pc of pcs) { g.strokeStyle = pc.color; stroke(Math.max(start, s + pc.a), s + pc.b); }
+      g.strokeStyle = color; g.fillStyle = color;
+    } else stroke(start, end);
     const [hx, hy] = at(end);
     const [ex, ey] = this.toScreen(hx, hy);
-    g.lineTo(ex, ey);
-    g.stroke();
     if (redDash) {
       // Bir kırmızı, bir siyah: aynı yolu kırmızı kesik çizgiyle yeniden çiz
       g.strokeStyle = '#E5162B'; g.setLineDash([lw * 4.2, lw * 1.8]);
