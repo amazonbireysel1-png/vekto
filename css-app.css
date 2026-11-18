@@ -7,7 +7,11 @@ html, body {
   -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   user-select: none; -webkit-user-select: none; touch-action: manipulation;
   font-feature-settings: 'cv11', 'ss01';
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
 }
+/* Taşma koruması: metin içeren öğeler küçülebilir, uzun metin kırılır */
+.btn, .pill, .ctrl, .reward, .set-row .txt, .coach p, .toast, .player-card .txt { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
+.btn, .ctrl { text-align: center; }
 button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
 button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--blue-ink); outline-offset: 2px; }
 svg { display: block; }
@@ -44,7 +48,7 @@ svg { display: block; }
 .icon-btn svg { width: 22px; height: 22px; }
 
 .pill {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px 0 8px;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 8px;
   border-radius: var(--r-pill); background: var(--surface); box-shadow: var(--sh-1);
   font-weight: 600; font-size: var(--fs-sm);
 }
@@ -57,14 +61,14 @@ svg { display: block; }
 /* ---------- Butonlar ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
-  height: 52px; padding: 0 var(--s6); border-radius: var(--r-lg);
+  min-height: 52px; padding: 0 var(--s6); border-radius: var(--r-lg);
   font-weight: 600; font-size: var(--fs-md);
   background: var(--surface); box-shadow: var(--sh-1); color: var(--ink);
 }
 .btn svg { width: 20px; height: 20px; }
 .btn.primary { background: var(--piece); color: var(--ink-inv); box-shadow: 0 3px 0 var(--piece-edge), var(--sh-2); }
 .btn.primary:active { transform: translateY(2px) scale(0.99); box-shadow: 0 1px 0 var(--piece-edge), var(--sh-1); }
-.btn.big { height: 64px; font-size: var(--fs-lg); border-radius: var(--r-xl); width: 100%; }
+.btn.big { min-height: 64px; font-size: var(--fs-lg); border-radius: var(--r-xl); width: 100%; }
 .btn.block { width: 100%; }
 .btn.soft { background: var(--surface-2); box-shadow: none; }
 .btn[disabled] { opacity: 0.45; pointer-events: none; }
@@ -108,7 +112,7 @@ svg { display: block; }
 .daily-card small { color: var(--ink-3); font-size: var(--fs-sm); }
 .daily-card .chev { color: var(--ink-3); width: 20px; height: 20px; }
 .home-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
-.home-row .btn { height: 56px; }
+.home-row .btn { min-height: 56px; }
 
 /* ---------- Oyun ekranı ---------- */
 .game { padding-left: var(--s3); padding-right: var(--s3); }
@@ -116,8 +120,8 @@ svg { display: block; }
 .level-tag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: var(--r-pill); font-size: 11px; font-weight: 600; vertical-align: 2px; }
 .level-tag.boss { background: var(--lavender); color: var(--lavender-ink); }
 .level-tag.daily { background: var(--blue); color: var(--blue-ink); }
-.status-row { display: flex; justify-content: center; gap: var(--s2); min-height: 30px; margin-top: var(--s1); flex: none; }
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-sm); font-weight: 600; }
+.status-row { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: var(--s1) var(--s2); min-height: 30px; margin-top: var(--s1); flex: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 2px 12px; white-space: nowrap; flex: 0 0 auto; border-radius: var(--r-pill); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-sm); font-weight: 600; }
 .chip svg { width: 15px; height: 15px; }
 .chip.warn { background: #F6E3DE; color: #8A4436; }
 .chip.ok { background: var(--mint); color: var(--mint-ink); }
@@ -125,7 +129,7 @@ svg { display: block; }
 .board-wrap canvas { position: absolute; inset: 0; display: block; }
 .controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); flex: none; padding: 0 var(--s1); }
 .ctrl {
-  position: relative; height: 60px; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1);
+  position: relative; min-height: 60px; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-1);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2);
 }
@@ -288,7 +292,7 @@ svg { display: block; }
 .win-stars svg:nth-child(2) { width: 56px; height: 56px; margin-top: -8px; }
 @keyframes star-pop { from { transform: scale(0.2) rotate(-25deg); opacity: 0; } }
 .rewards { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2); }
-.reward { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: var(--r-pill); background: var(--surface-2); font-weight: 600; font-size: var(--fs-sm); animation: coach-in 360ms var(--ease-out) both; }
+.reward { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: var(--r-pill); background: var(--surface-2); font-weight: 600; font-size: var(--fs-sm); animation: coach-in 360ms var(--ease-out) both; }
 .reward svg { width: 16px; height: 16px; }
 .reward.lav { background: var(--lavender); color: var(--lavender-ink); }
 .reward.mint { background: var(--mint); color: var(--mint-ink); }
@@ -318,10 +322,10 @@ svg { display: block; }
 }
 /* Kısa ekranlar (küçük telefonlar) */
 @media (max-height: 640px) {
-  .ctrl { height: 52px; }
-  .btn.big { height: 56px; }
+  .ctrl { min-height: 52px; }
+  .btn.big { min-height: 56px; }
   .hero-num { font-size: clamp(88px, 30vw, 140px); }
-  .home-row .btn { height: 50px; }
+  .home-row .btn { min-height: 50px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
@@ -344,7 +348,7 @@ svg { display: block; }
 .wave i { flex: 1; border-radius: 4px; background: var(--surface-2); }
 .wave i.done { background: var(--line-strong); }
 .wave i.current { background: var(--piece); }
-.diff { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-sm); font-weight: 600; }
+.diff { display: inline-flex; align-items: center; white-space: nowrap; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-sm); font-weight: 600; }
 .tone-mint { background: #D9F2E6; color: #23704F; }
 .tone-blue { background: #DCE9FB; color: #2A5592; }
 .tone-lav { background: #E8E1FA; color: #5A45A0; }
@@ -367,7 +371,7 @@ svg { display: block; }
 /* Sürüm 3: sade seviye kartı, ipucu sayacı */
 .level-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: var(--s5) var(--s5) var(--s6); }
 .level-card .lc-num { font-size: clamp(44px, 13vw, 56px); margin: 0; }
-.level-card .diff { height: 30px; padding: 0 14px; font-size: var(--fs-md); }
+.level-card .diff { min-height: 30px; padding: 0 14px; font-size: var(--fs-md); }
 .hint-pill { padding: 0 12px 0 10px; }
 .hint-pill svg { width: 18px; height: 18px; color: #9A6B00; }
 .ctrl .badge.empty { background: var(--surface-2); color: var(--ink-3); }
@@ -474,3 +478,5 @@ svg { display: block; }
 }
 @keyframes level-flash { 0% { opacity: 0; } 35% { opacity: 1; } 60% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .level-flash { animation-duration: 1.5s; } }
+
+@media (max-width: 400px) { .btn { padding: 0 var(--s4); } .pill { padding: 0 9px 0 6px; } .topbar { gap: var(--s1); } .chip { padding: 0 9px; gap: 4px; font-size: 12px; } .lives { gap: 2px; } .lives svg { width: 18px; height: 18px; } }
