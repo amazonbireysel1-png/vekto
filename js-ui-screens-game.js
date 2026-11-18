@@ -81,10 +81,20 @@ export function gameScreen(app) {
 
     const clearHint = () => { renderer.clearHint(); hintNote?.remove(); hintNote = null; };
 
+    // Bölüm başında zorluk yazısı yavaşça yanıp söner, sonra oklar açılır
+    const LABEL_MS = 1500;
+    const showLabel = () => {
+      if (isDaily) return;
+      wrap.querySelector('.level-flash')?.remove();
+      const f = el(`<div class="level-flash" aria-hidden="true">${esc(lab.name)}</div>`);
+      wrap.appendChild(f);
+      setTimeout(() => f.remove(), LABEL_MS + 100);
+    };
     const start = (fresh) => {
       if (fresh) { session = new Session(level); save.resume = null; app.save.touch(); }
       renderer.setLevel(level, session.state);
-      renderer.intro();
+      renderer.intro(isDaily ? 0 : LABEL_MS);
+      showLabel();
       clearHint();
       updateHud();
     };

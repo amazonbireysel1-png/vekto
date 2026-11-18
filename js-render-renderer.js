@@ -190,13 +190,13 @@ export class BoardRenderer {
 
   // ---------- Animasyonlar ----------
 
-  intro() {
+  intro(extra = 0) {
     const L = this.level;
     for (let i = 0; i < L.n; i++) {
       const [hx, hy] = [L.px[i], L.py[i]];
       const d = Math.hypot(hx - L.w / 2, hy - L.h / 2);
       this.v.a[i] = 0;
-      this.anim.add({ key: `p${i}`, dur: 320, delay: 30 + d * 22, ease: ease.outCubic, update: (t) => { this.v.a[i] = t; } });
+      this.anim.add({ key: `p${i}`, dur: 320, delay: extra + 30 + d * 22, ease: ease.outCubic, update: (t) => { this.v.a[i] = t; } });
     }
   }
 

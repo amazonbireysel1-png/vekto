@@ -23,14 +23,46 @@ export const LABELS = {
 const WAVE_KINDS = ['easy', 'easy', 'medium', 'medium', 'medium', 'hard', 'ultra'];
 const KIND_D = { easy: 0.12, medium: 0.4, hard: 0.72, ultra: 0.95 };
 
-// İlk 5 bölüm Kolay, 6-7 Orta; 8. bölümden itibaren normal dalga düzeni başlar.
-export const kindOf = (n) => (n <= 5 ? 'easy' : n <= 7 ? 'medium' : WAVE_KINDS[(n - 8) % WAVE]);
-const cycleT = (n) => Math.min(1, (n <= 7 ? 0 : Math.floor((n - 8) / WAVE) + 1) / (MAX_LEVEL / WAVE - 1));
+// Zorluk çizelgesi:
+//   1-10   Kolay
+//   11-39  Orta (her 5. bölüm Kolay, nefes payı)
+//   40-50  Kolay / Orta / Zor karışık (3 Zor)
+//   51-100 7'lik dalga; her ikinci dalgada Ultra zor yerine Zor (Ultra zor seyrek)
+//   101+   normal dalga: 2 Kolay, 3 Orta, 1 Zor, 1 Ultra zor
+const MIX_40_50 = ['medium', 'easy', 'medium', 'hard', 'medium', 'easy', 'medium', 'hard', 'easy', 'medium', 'hard'];
+function buildKinds() {
+  const ks = [null];
+  for (let n = 1; n <= MAX_LEVEL; n++) {
+    let k;
+    if (n <= 10) k = 'easy';
+    else if (n < 40) k = n % 5 === 0 ? 'easy' : 'medium';
+    else if (n <= 50) k = MIX_40_50[n - 40];
+    else {
+      const wave = Math.floor((n - 51) / WAVE);
+      k = WAVE_KINDS[(n - 51) % WAVE];
+      if (k === 'ultra' && n <= 100 && wave % 2 === 1) k = 'hard';
+    }
+    ks.push(k);
+  }
+  return ks;
+}
+const KINDS = buildKinds();
+// Her türün kendi sırası: şekil havuzunda ve boyut artışında kullanılır
+const KIND_IDX = (() => {
+  const c = { easy: 0, medium: 0, tall: 0 }, out = [0];
+  for (let n = 1; n <= MAX_LEVEL; n++) {
+    const g = KINDS[n] === 'hard' || KINDS[n] === 'ultra' ? 'tall' : KINDS[n];
+    out.push(n <= 3 ? 0 : c[g]++);
+  }
+  return out;
+})();
+export const kindOf = (n) => KINDS[n];
+const cycleT = (n) => Math.min(1, n / MAX_LEVEL);
 
 /** 0 (kolay) … 1 (ultra zor). Dalga içindeki yer + dalganın ilerleyişi. */
 export function difficultyOf(n) {
   if (n <= 2) return 0.04 * n;
-  return Math.min(1, KIND_D[kindOf(n)] + cycleT(n) * 0.05 + ((n - 8) % WAVE === 4 && n >= 8 ? 0.04 : 0));
+  return Math.min(1, KIND_D[kindOf(n)] + cycleT(n) * 0.05);
 }
 
 export const DIFFICULTY_LABELS = [
@@ -78,16 +110,15 @@ function pick(name, pool, idx) { return permutation(name, pool, Math.floor(idx /
 /** Seviye şekli: her tür kendi havuzunda dolaşır; havuz bitmeden aynı şekil tekrar etmez. */
 function shapeFor(n) {
   if (n <= 3) return 'square';
-  if (n <= 5) return pick('easy', EASY_POOL, n - 4);
-  if (n <= 7) return pick('medium', MEDIUM_POOL, n - 6);
-  const wave = Math.floor((n - 8) / WAVE), pos = (n - 8) % WAVE;
-  if (pos < 2) return pick('easy', EASY_POOL, 2 + wave * 2 + pos);
-  if (pos < 5) return pick('medium', MEDIUM_POOL, 2 + wave * 3 + pos - 2);
-  return pick('tall', TALL_POOL, wave * 2 + pos - 5);
+  const k = KINDS[n], i = KIND_IDX[n];
+  if (k === 'easy') return pick('easy', EASY_POOL, i);
+  if (k === 'medium') return pick('medium', MEDIUM_POOL, i);
+  return pick('tall', TALL_POOL, i);
 }
 
 export function paramsFor(n) {
-  const kind = kindOf(n), t = cycleT(n), pos = n <= 5 ? n - 4 : n <= 7 ? n - 6 + 2 : (n - 8) % WAVE;
+  const kind = kindOf(n), t = cycleT(n);
+  const pos = kind === 'easy' ? (n <= 10 ? Math.round((n - 4) / 2) : 1 + (KIND_IDX[n] % 2)) : 2 + (KIND_IDX[n] % 3);
   const shape = shapeFor(n);
   let w, h, density, blockBias, maxLen, straight, hardness, deepen = 0;
   if (kind === 'easy') {
