@@ -12,6 +12,16 @@
   <link rel="stylesheet" href="css-tokens.css">
   <link rel="stylesheet" href="css-app.css">
   <link rel="icon" href="assets-icon-192.png">
+  <style id="offline-style">
+    #offline-guard{position:fixed;inset:0;z-index:2147483647;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;box-sizing:border-box;background:#fff;color:#1B2340;text-align:center;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
+    #offline-guard.show{display:flex}
+    #offline-guard svg{width:104px;height:104px;animation:offline-blink 1.2s ease-in-out infinite}
+    #offline-guard h1{margin:0;font-size:24px;font-weight:700;line-height:1.25}
+    #offline-guard p{margin:0;font-size:16px;line-height:1.45;color:#5B6378;max-width:320px}
+    #offline-guard .en{margin-top:6px;font-size:15px;color:#7C849A}
+    @keyframes offline-blink{0%,100%{opacity:1}50%{opacity:.25}}
+    @media (prefers-reduced-motion:reduce){#offline-guard svg{animation:none}}
+  </style>
 </head>
 <body>
   <div id="app">
@@ -19,7 +29,39 @@
     <div class="overlay-host"></div>
     <div class="toast-host" aria-live="polite"></div>
   </div>
+  <div id="offline-guard" role="alertdialog" aria-modal="true" aria-live="assertive" aria-label="İnternet bağlantısı yok">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#E5162B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.4" r=".6" fill="#E5162B"/><path d="M3 3l18 18"/>
+    </svg>
+    <h1>İnternet bağlantısı yok</h1>
+    <p>Vekto'yu oynamak için internet gerekli. Bağlantı gelince oyun kaldığın yerden devam eder.</p>
+    <p class="en"><b>No internet connection</b><br>An internet connection is required to play. The game will resume where you left off.</p>
+  </div>
   <noscript>Vekto için JavaScript gerekli.</noscript>
+  <script>
+    // İnternet yokken oyun oynanamasın: tam ekran uyarı, bağlantı gelince kendiliğinden kapanır.
+    (function () {
+      try {
+        var box = document.getElementById('offline-guard');
+        function app() { return document.getElementById('app'); }
+        function online() { try { return navigator.onLine !== false; } catch (e) { return true; } }
+        function sync() {
+          try {
+            var off = !online();
+            box.classList.toggle('show', off);
+            var a = app();
+            if (a) { if (off) { a.setAttribute('inert', ''); a.setAttribute('aria-hidden', 'true'); } else { a.removeAttribute('inert'); a.removeAttribute('aria-hidden'); } }
+          } catch (e) {}
+        }
+        ['touchstart', 'touchmove', 'pointerdown', 'click', 'keydown'].forEach(function (t) {
+          box.addEventListener(t, function (e) { e.stopPropagation(); }, { passive: true });
+        });
+        window.addEventListener('online', sync);
+        window.addEventListener('offline', sync);
+        sync();
+      } catch (e) {}
+    })();
+  </script>
   <script type="module" src="js-main.js"></script>
 </body>
 </html>
