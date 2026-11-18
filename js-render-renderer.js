@@ -119,11 +119,6 @@ export class BoardRenderer {
     this.ox = px - (px - this.ox) * k;
     this.oy = py - (py - this.oy) * k;
     this.z = z;
-    // En çok küçültülünce tahtanın tamamı ekranın ortasında görünür
-    if (this.level?.meta?.scroll && z <= this.minZoom + 1e-6) {
-      this.ox = (this.W - this.cs * z * this.level.w) / 2;
-      this.oy = (this.H - this.cs * z * this.level.h) / 2;
-    }
     this.clamp();
     this.anim.wake();
     this.onViewChange?.(this.z);
@@ -285,8 +280,8 @@ export class BoardRenderer {
     const far = Math.hypot(this.W, this.H) + this.cell * 4;
     const x1 = x0 + DX[d] * far, y1 = y0 + DY[d] * far;
     g.save();
-    g.strokeStyle = this.colors[i]; g.lineCap = 'round'; g.lineJoin = 'round';
-    g.globalAlpha = alpha;
+    g.strokeStyle = solid ? '#C9CDD4' : this.colors[i]; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.globalAlpha = solid ? 1 : alpha;
     g.lineWidth = Math.max(2, this.cell * 0.11);
     if (!solid) g.setLineDash([Math.max(4, this.cell * 0.28), Math.max(5, this.cell * 0.3)]);
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
