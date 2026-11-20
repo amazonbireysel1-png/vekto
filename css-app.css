@@ -298,8 +298,8 @@ svg { display: block; }
 .reward.mint { background: var(--mint); color: var(--mint-ink); }
 .reward.blue { background: var(--blue); color: var(--blue-ink); }
 
-.login-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: var(--s2) 0 var(--s2); }
-.login-days div { border-radius: var(--r-sm); background: var(--surface-2); padding: 8px 0 6px; text-align: center; font-size: 11px; color: var(--ink-3); }
+.login-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 6px; margin: var(--s2) 0 var(--s2); }
+.login-days div { min-width: 0; white-space: nowrap; border-radius: var(--r-sm); background: var(--surface-2); padding: 8px 2px 6px; text-align: center; font-size: 11px; color: var(--ink-3); }
 .login-days div b { display: block; font-size: var(--fs-sm); color: var(--ink-2); margin-top: 2px; }
 .login-days div.past { background: var(--mint); color: var(--mint-ink); }
 .login-days div.past b { color: var(--mint-ink); }
