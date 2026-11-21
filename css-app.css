@@ -480,3 +480,5 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) { .level-flash { animation-duration: 1.5s; } }
 
 @media (max-width: 400px) { .btn { padding: 0 var(--s4); } .pill { padding: 0 9px 0 6px; } .topbar { gap: var(--s1); } .chip { padding: 0 9px; gap: 4px; font-size: 12px; } .lives { gap: 2px; } .lives svg { width: 18px; height: 18px; } }
+
+.topbar .top-right { width: 96px; display: flex; justify-content: flex-end; flex: none; }

@@ -42,7 +42,7 @@ export function gameScreen(app) {
           <button class="icon-btn" data-act="back" aria-label="Ana sayfa">${icon.home}</button>
           <button class="icon-btn hint-btn" data-act="hint" aria-label="İpucu">${icon.hint}<em class="badge num" data-hint></em></button>
           <div class="title">${esc(title)}${tag}</div>
-          <div style="width:96px"></div>
+          <div class="top-right"><button class="icon-btn" data-act="restart" aria-label="Seviyeyi yeniden başlat">${icon.restart}</button></div>
         </header>
         <div class="status-row" data-status></div>
         <div class="board-wrap" data-board><canvas aria-label="Oyun tahtası"></canvas>
@@ -353,6 +353,20 @@ export function gameScreen(app) {
     }
 
     onTap($('[data-act="back"]'), () => app.router.home(), { app, sound: 'back' });
+    // Yeniden başlat: canlar yenilenir, seviye baştan açılır. İlerleme varsa yanlışlıkla basılmasın diye sorar.
+    onTap($('[data-act="restart"]'), () => {
+      if (ended) return;
+      if (session.cleared === 0 && session.lives === LIVES) { start(true); return; }
+      const content = el(`<div><h2>Baştan başlansın mı?</h2><p class="lead">Bu seviyedeki ilerlemen sıfırlanır, canların ${LIVES}'e döner.</p>
+        <div class="actions">
+          <button class="btn primary big" data-a="yes">${icon.restart}Baştan başla</button>
+          <button class="btn soft" data-a="no">Vazgeç</button>
+        </div></div>`);
+      const layer = app.layers.show(content, { dismissable: true });
+      const close = () => app.layers.close(layer);
+      onTap(content.querySelector('[data-a="yes"]'), () => { close(); ended = false; start(true); }, { app });
+      onTap(content.querySelector('[data-a="no"]'), close, { app });
+    }, { app });
     onTap($('[data-act="rays"]'), () => {
       if (ended) return;
       showAll = !showAll; renderer.setShowAll(showAll);
